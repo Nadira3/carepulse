@@ -3,11 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarePulse</title>
+    <title>CarePulse - Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>CarePulse AI</h1>
+    <div class="login-container">
+        <!-- Logo -->
+        <div class="logo-section">
+            <img src="images/logo.png" alt="Hospital Logo" class="logo">
+        </div>
+
+        <!-- Heading -->
+        <h1>CarePulse AI</h1>
+        <p class="subheading">Patient Adherence Platform</p>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="login-form">
+            <!-- Hospital Name -->
+            <div class="form-group">
+                <label for="hospitalName">Hospital Name</label>
+                <input 
+                    type="text" 
+                    id="hospitalName" 
+                    name="hospitalName" 
+                    placeholder="e.g. ISTH Irrua"
+                    class="form-input"
+                >
+                <span class="error-message" id="hospitalError"></span>
+            </div>
+
+            <!-- Username -->
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    placeholder="Enter your username"
+                    class="form-input"
+                >
+                <span class="error-message" id="usernameError"></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="••••••••"
+                        class="form-input"
+                    >
+                    <button type="button" class="toggle-password" id="togglePassword">
+                        <span class="toggle-icon">👁</span>
+                    </button>
+                </div>
+                <span class="error-message" id="passwordError"></span>
+            </div>
+
+            <!-- Remember Me -->
+            <div class="form-group checkbox-group">
+                <input 
+                    type="checkbox" 
+                    id="rememberMe" 
+                    name="rememberMe"
+                    class="checkbox-input"
+                >
+                <label for="rememberMe" class="checkbox-label">Remember me</label>
+            </div>
+
+            <!-- Forgot Password Link -->
+            <a href="#" class="forgot-password">Forgot password?</a>
+
+            <!-- Form Error Message -->
+            <span class="error-message" id="formError"></span>
+
+            <!-- Login Button -->
+            <button type="submit" class="login-button">LOGIN</button>
+        </form>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

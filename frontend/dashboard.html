@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarePulse - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Top Navigation Bar -->
+        <nav class="top-navbar">
+            <div class="navbar-left">
+                <img src="images/logo.png" alt="CarePulse Logo" class="navbar-logo">
+                <span class="navbar-title">CarePulse AI</span>
+            </div>
+            <div class="navbar-center">
+                <span class="hospital-name" id="hospitalName"></span>
+            </div>
+            <div class="navbar-right">
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <span>🚪</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="dashboard-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                    <a href="patients.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-label">Patients</span>
+                    </a>
+                    <a href="add-patient.html" class="nav-link">
+                        <span class="nav-icon">➕</span>
+                        <span class="nav-label">Add Patient</span>
+                    </a>
+                    <a href="medication.html" class="nav-link">
+                        <span class="nav-icon">💊</span>
+                        <span class="nav-label">Medications</span>
+                    </a>
+                    <a href="reminders.html" class="nav-link">
+                        <span class="nav-icon">🔔</span>
+                        <span class="nav-label">Reminders</span>
+                    </a>
+                    <a href="messages.html" class="nav-link">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-label">Messages</span>
+                    </a>
+                    <a href="reports.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Reports</span>
+                    </a>
+                    <a href="settings.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- 4 Stat Cards -->
+                <section class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statTotalPatients">50</div>
+                        <div class="stat-label">Total Patients</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAdherence">78%</div>
+                        <div class="stat-label">Adherence Rate This Week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAppointments">6</div>
+                        <div class="stat-label">Appointments Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statMessages">34</div>
+                        <div class="stat-label">Messages Sent Today</div>
+                    </div>
+                </section>
+
+                <!-- Quick Action Buttons -->
+                <section class="quick-actions">
+                    <button class="action-btn" id="btnAddPatient">➕ Add New Patient</button>
+                    <button class="action-btn" id="btnViewPatients">👥 View All Patients</button>
+                    <button class="action-btn" id="btnGenerateReminders">🔔 Generate Reminders</button>
+                </section>
+
+                <!-- Adherence Summary Bar -->
+                <section class="adherence-summary">
+                    <h3>Adherence Distribution</h3>
+                    <div class="adherence-bar">
+                        <div class="adherence-segment green" id="adSegmentGreen" title="≥80% Adherence"></div>
+                        <div class="adherence-segment amber" id="adSegmentAmber" title="50-79% Adherence"></div>
+                        <div class="adherence-segment red" id="adSegmentRed" title="<50% Adherence"></div>
+                    </div>
+                    <div class="adherence-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot green"></span>
+                            <span class="legend-text" id="legendGreen">28 Green (≥80%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot amber"></span>
+                            <span class="legend-text" id="legendAmber">14 Amber (50-79%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot red"></span>
+                            <span class="legend-text" id="legendRed">8 Red (<50%)</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Activity Feed -->
+                <section class="activity-section">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-feed" id="activityFeed">
+                        <!-- Activity items will be populated by JavaScript -->
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="mockData.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarePulse - Medication & Reminder Setup</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Top Navigation Bar -->
+        <nav class="top-navbar">
+            <div class="navbar-left">
+                <img src="images/logo.png" alt="CarePulse Logo" class="navbar-logo">
+                <span class="navbar-title">CarePulse AI</span>
+            </div>
+            <div class="navbar-center">
+                <span class="hospital-name" id="hospitalName"></span>
+            </div>
+            <div class="navbar-right">
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <span>🚪</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="dashboard-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                    <a href="patients.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-label">Patients</span>
+                    </a>
+                    <a href="add-patient.html" class="nav-link">
+                        <span class="nav-icon">➕</span>
+                        <span class="nav-label">Add Patient</span>
+                    </a>
+                    <a href="medication.html" class="nav-link active">
+                        <span class="nav-icon">💊</span>
+                        <span class="nav-label">Medications</span>
+                    </a>
+                    <a href="reminders.html" class="nav-link">
+                        <span class="nav-icon">🔔</span>
+                        <span class="nav-label">Reminders</span>
+                    </a>
+                    <a href="messages.html" class="nav-link">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-label">Messages</span>
+                    </a>
+                    <a href="reports.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Reports</span>
+                    </a>
+                    <a href="settings.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1>Medication & Reminder Setup</h1>
+                        <p class="patient-subtitle" id="patientSubtitle">Setting up: [Patient Name]</p>
+                    </div>
+                </div>
+
+                <!-- Setup Form -->
+                <form id="medicationForm" class="medication-form">
+                    
+                    <!-- SECTION 1: Medication Details -->
+                    <section class="form-section">
+                        <h2 class="section-title">💊 Medication Details</h2>
+                        
+                        <div id="medicationContainer" class="medication-container">
+                            <!-- Medication rows will be added here -->
+                        </div>
+                        
+                        <button type="button" class="btn-add-medication" id="btnAddMedication">
+                            ➕ Add Another Medication
+                        </button>
+                    </section>
+
+                    <!-- SECTION 2: Language Preference -->
+                    <section class="form-section">
+                        <h2 class="section-title">🌐 Language Preference</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="language">Reminder Language</label>
+                                <select id="language" name="language" class="form-input">
+                                    <option value="English">English</option>
+                                    <option value="Pidgin English">Pidgin English</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SECTION 3: AI-Generated Preview -->
+                    <section class="form-section">
+                        <div class="divider-section">
+                            <hr class="divider-line">
+                            <span class="divider-label">✨ AI-Generated Reminder Preview</span>
+                            <hr class="divider-line">
+                        </div>
+
+                        <div class="preview-panel" id="previewPanel">
+                            <div class="preview-placeholder" id="previewPlaceholder">
+                                Click "Generate Preview" to see a sample reminder message powered by Gemini AI
+                            </div>
+                            <div class="preview-message" id="previewMessage" style="display: none;"></div>
+                            <div class="preview-loading" id="previewLoading" style="display: none;">
+                                <div class="spinner"></div>
+                                <p>Generating your personalized reminder...</p>
+                            </div>
+                        </div>
+
+                        <div class="preview-buttons">
+                            <button type="button" class="btn-generate" id="btnGenerate">
+                                🤖 Generate Preview
+                            </button>
+                            <button type="button" class="btn-regenerate" id="btnRegenerate" disabled>
+                                🔄 Regenerate
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- SECTION 4: Appointment Details -->
+                    <section class="form-section">
+                        <h2 class="section-title">📅 Appointment Schedule</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="appointmentDate">Next Appointment Date</label>
+                                <input 
+                                    type="date" 
+                                    id="appointmentDate" 
+                                    name="appointmentDate" 
+                                    class="form-input"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label for="appointmentTime">Appointment Time</label>
+                                <input 
+                                    type="time" 
+                                    id="appointmentTime" 
+                                    name="appointmentTime" 
+                                    class="form-input"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="department">Department / Clinic</label>
+                                <input 
+                                    type="text" 
+                                    id="department" 
+                                    name="department" 
+                                    class="form-input"
+                                    placeholder="e.g. Cardiology Ward"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Appointment Reminders</label>
+                                <div class="checkbox-group-vertical">
+                                    <label class="checkbox-label">
+                                        <input 
+                                            type="checkbox" 
+                                            id="reminderThreeDays" 
+                                            name="reminderThreeDays"
+                                            class="checkbox-input"
+                                            checked
+                                        >
+                                        <span>3 days before appointment</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input 
+                                            type="checkbox" 
+                                            id="reminderMorning" 
+                                            name="reminderMorning"
+                                            class="checkbox-input"
+                                            checked
+                                        >
+                                        <span>Morning of appointment</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-skip" id="btnSkipAppointment">
+                            ⏭ Skip Appointment Setup
+                        </button>
+                    </section>
+
+                </form>
+
+                <!-- Action Buttons -->
+                <section class="form-buttons">
+                    <button type="button" class="btn-secondary" id="btnCancel">← Cancel</button>
+                    <button type="button" class="btn-primary" id="btnSave">✓ Approve & Save</button>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="mockData.js"></script>
+    <script src="medication.js"></script>
+</body>
+</html>

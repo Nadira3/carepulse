@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarePulse - Register New Patient</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Top Navigation Bar -->
+        <nav class="top-navbar">
+            <div class="navbar-left">
+                <img src="images/logo.png" alt="CarePulse Logo" class="navbar-logo">
+                <span class="navbar-title">CarePulse AI</span>
+            </div>
+            <div class="navbar-center">
+                <span class="hospital-name" id="hospitalName"></span>
+            </div>
+            <div class="navbar-right">
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <span>🚪</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="dashboard-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                    <a href="patients.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-label">Patients</span>
+                    </a>
+                    <a href="add-patient.html" class="nav-link active">
+                        <span class="nav-icon">➕</span>
+                        <span class="nav-label">Add Patient</span>
+                    </a>
+                    <a href="medication.html" class="nav-link">
+                        <span class="nav-icon">💊</span>
+                        <span class="nav-label">Medications</span>
+                    </a>
+                    <a href="reminders.html" class="nav-link">
+                        <span class="nav-icon">🔔</span>
+                        <span class="nav-label">Reminders</span>
+                    </a>
+                    <a href="messages.html" class="nav-link">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-label">Messages</span>
+                    </a>
+                    <a href="reports.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Reports</span>
+                    </a>
+                    <a href="settings.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Progress Indicator -->
+                <section class="progress-section">
+                    <div class="progress-indicator">
+                        <div class="progress-step active" id="stepIndicator1">
+                            <span class="progress-number">1</span>
+                            <span class="progress-label">Personal</span>
+                        </div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" id="stepIndicator2">
+                            <span class="progress-number">2</span>
+                            <span class="progress-label">Clinical</span>
+                        </div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" id="stepIndicator3">
+                            <span class="progress-number">3</span>
+                            <span class="progress-label">Enrolment</span>
+                        </div>
+                    </div>
+                    <div class="progress-text">Step <span id="currentStep">1</span> of 3</div>
+                </section>
+
+                <!-- Page Header -->
+                <h1>Register New Patient</h1>
+
+                <!-- Registration Form -->
+                <form id="patientForm" class="registration-form">
+                    
+                    <!-- STEP 1: Personal Details -->
+                    <div class="form-step active" id="step1">
+                        <h2 class="step-title">Personal Details</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">First Name <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    name="firstName" 
+                                    class="form-input"
+                                    placeholder="Enter first name"
+                                >
+                                <span class="error-message" id="firstNameError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    name="lastName" 
+                                    class="form-input"
+                                    placeholder="Enter last name"
+                                >
+                                <span class="error-message" id="lastNameError"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="age">Age <span class="required">*</span></label>
+                                <input 
+                                    type="number" 
+                                    id="age" 
+                                    name="age" 
+                                    class="form-input"
+                                    placeholder="Enter age"
+                                    min="1"
+                                    max="150"
+                                >
+                                <span class="error-message" id="ageError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender <span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="gender" value="Male" id="genderMale">
+                                        <span>Male</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="gender" value="Female" id="genderFemale">
+                                        <span>Female</span>
+                                    </label>
+                                </div>
+                                <span class="error-message" id="genderError"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number <span class="required">*</span></label>
+                                <input 
+                                    type="tel" 
+                                    id="phone" 
+                                    name="phone" 
+                                    class="form-input"
+                                    placeholder="e.g. +234-801-234-5001"
+                                >
+                                <span class="error-message" id="phoneError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Preferred Language <span class="required">*</span></label>
+                                <select id="language" name="language" class="form-input">
+                                    <option value="">Select language</option>
+                                    <option value="English">English</option>
+                                    <option value="Pidgin English">Pidgin English</option>
+                                </select>
+                                <span class="error-message" id="languageError"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Clinical Details -->
+                    <div class="form-step" id="step2">
+                        <h2 class="step-title">Clinical Details</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="diagnosis">Primary Diagnosis <span class="required">*</span></label>
+                                <select id="diagnosis" name="diagnosis" class="form-input">
+                                    <option value="">Select diagnosis</option>
+                                    <option value="Hypertension">Hypertension</option>
+                                    <option value="Diabetes Type 2">Diabetes Type 2</option>
+                                    <option value="Hypertension & Diabetes">Both</option>
+                                </select>
+                                <span class="error-message" id="diagnosisError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="secondary">Secondary Conditions <span class="optional">(Optional)</span></label>
+                                <input 
+                                    type="text" 
+                                    id="secondary" 
+                                    name="secondary" 
+                                    class="form-input"
+                                    placeholder="e.g. Asthma, Arthritis"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="clinician">Treating Clinician Name <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="clinician" 
+                                    name="clinician" 
+                                    class="form-input"
+                                    placeholder="Enter clinician name"
+                                >
+                                <span class="error-message" id="clinicianError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="ward">Ward / Clinic <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="ward" 
+                                    name="ward" 
+                                    class="form-input"
+                                    placeholder="e.g. Cardiology, Ward A"
+                                >
+                                <span class="error-message" id="wardError"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Enrolment -->
+                    <div class="form-step" id="step3">
+                        <h2 class="step-title">Enrolment</h2>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="enrolmentDate">Enrolment Date <span class="required">*</span></label>
+                                <input 
+                                    type="date" 
+                                    id="enrolmentDate" 
+                                    name="enrolmentDate" 
+                                    class="form-input"
+                                >
+                                <span class="error-message" id="enrolmentDateError"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input 
+                                        type="checkbox" 
+                                        id="consent" 
+                                        name="consent"
+                                        class="checkbox-input"
+                                    >
+                                    <span>Patient has been informed of the SMS reminder programme <span class="required">*</span></span>
+                                </label>
+                                <span class="error-message" id="consentError"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+                <!-- Form Buttons -->
+                <section class="form-buttons">
+                    <button type="button" id="btnBack" class="btn-secondary" disabled>← Back</button>
+                    <button type="button" id="btnNext" class="btn-primary">Next →</button>
+                    <button type="button" id="btnSubmit" class="btn-primary" style="display: none;">✓ Register Patient</button>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="mockData.js"></script>
+    <script src="add-patient.js"></script>
+</body>
+</html>
