@@ -26,23 +26,24 @@
                     type="text" 
                     id="hospitalName" 
                     name="hospitalName" 
-                    placeholder="e.g. ISTH Irrua"
+                    value="ISTH Irrua"
+                    readonly
                     class="form-input"
                 >
                 <span class="error-message" id="hospitalError"></span>
             </div>
 
-            <!-- Username -->
+            <!-- Email -->
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="email">Email</label>
                 <input 
                     type="text" 
-                    id="username" 
-                    name="username" 
-                    placeholder="Enter your username"
+                    id="email" 
+                    name="email" 
+                    placeholder="Enter your email"
                     class="form-input"
                 >
-                <span class="error-message" id="usernameError"></span>
+                <span class="error-message" id="emailError"></span>
             </div>
 
             <!-- Password -->
@@ -85,6 +86,7 @@
         </form>
     </div>
 
-    <script src="script.js"></script>
+    <script src="api.js"></script>
+    <script src="login.js"></script>
 </body>
 </html>

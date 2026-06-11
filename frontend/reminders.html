@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarePulse - Patient Register</title>
+    <title>CarePulse - Reminders</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <script src="auth-guard.js"></script>
     <script src="api.js"></script>
     <div class="dashboard-wrapper">
-        <!-- Top Navigation Bar -->
         <nav class="top-navbar">
             <div class="navbar-left">
                 <img src="images/logo.png" alt="CarePulse Logo" class="navbar-logo">
@@ -27,14 +26,13 @@
         </nav>
 
         <div class="dashboard-layout">
-            <!-- Left Sidebar -->
             <aside class="sidebar">
                 <nav class="sidebar-nav">
                     <a href="dashboard.html" class="nav-link">
                         <span class="nav-icon">📊</span>
                         <span class="nav-label">Dashboard</span>
                     </a>
-                    <a href="patients.html" class="nav-link active">
+                    <a href="patients.html" class="nav-link">
                         <span class="nav-icon">👥</span>
                         <span class="nav-label">Patients</span>
                     </a>
@@ -46,7 +44,7 @@
                         <span class="nav-icon">💊</span>
                         <span class="nav-label">Medications</span>
                     </a>
-                    <a href="reminders.html" class="nav-link">
+                    <a href="reminders.html" class="nav-link active">
                         <span class="nav-icon">🔔</span>
                         <span class="nav-label">Reminders</span>
                     </a>
@@ -65,69 +63,54 @@
                 </nav>
             </aside>
 
-            <!-- Main Content Area -->
             <main class="main-content">
-                <!-- Page Header -->
                 <section class="page-header">
                     <div class="header-left">
-                        <h1>Patient Register</h1>
-                        <span class="patient-count-badge" id="patientCountBadge">50 Patients</span>
+                        <h1>Reminders</h1>
+                        <span class="patient-count-badge" id="reminderCountBadge">—</span>
                     </div>
-                    <button class="action-btn" id="btnAddPatient">➕ Add New Patient</button>
                 </section>
 
                 <!-- Filter Bar -->
                 <section class="filter-bar">
                     <div class="filter-group">
-                        <label for="filterDisease">Disease:</label>
-                        <select id="filterDisease" class="filter-select">
-                            <option value="">All Diseases</option>
-                            <option value="Hypertension">Hypertension</option>
-                            <option value="Diabetes Type 2">Diabetes Type 2</option>
-                            <option value="Hypertension & Diabetes">Both</option>
+                        <label for="filterType">Type:</label>
+                        <select id="filterType" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="MEDICATION">Medication</option>
+                            <option value="APPOINTMENT">Appointment</option>
+                            <option value="LIFESTYLE">Lifestyle</option>
                         </select>
                     </div>
-
                     <div class="filter-group">
-                        <label for="filterAdherence">Adherence:</label>
-                        <select id="filterAdherence" class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="On Track">On Track (≥80%)</option>
-                            <option value="At Risk">At Risk (50-79%)</option>
-                            <option value="Non-Adherent">Non-Adherent (<50%)</option>
+                        <label for="filterStatus">Status:</label>
+                        <select id="filterStatus" class="filter-select">
+                            <option value="">All Statuses</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="SENT">Sent</option>
+                            <option value="FAILED">Failed</option>
+                            <option value="CANCELLED">Cancelled</option>
                         </select>
                     </div>
-
-                    <div class="filter-group">
-                        <input 
-                            type="text" 
-                            id="searchPatient" 
-                            class="search-input" 
-                            placeholder="Search by patient name..."
-                        >
-                    </div>
-
-                    <button class="reset-btn" id="btnReset">🔄 Reset Filters</button>
+                    <button class="reset-btn" id="btnReset">🔄 Reset</button>
                 </section>
 
-                <!-- Patient Table -->
+                <!-- Reminders Table -->
                 <section class="table-section">
                     <div class="table-wrapper">
                         <table class="patient-table">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Age</th>
-                                    <th>Disease</th>
-                                    <th>Phone</th>
-                                    <th>Last Reminder</th>
-                                    <th>Next Appointment</th>
-                                    <th>Adherence</th>
-                                    <th>Actions</th>
+                                    <th>Patient</th>
+                                    <th>Type</th>
+                                    <th>Message</th>
+                                    <th>Scheduled</th>
+                                    <th>Sent</th>
+                                    <th>Status</th>
+                                    <th>Confirmed</th>
                                 </tr>
                             </thead>
-                            <tbody id="patientTableBody">
-                                <!-- Rows populated by JavaScript -->
+                            <tbody id="reminderTableBody">
                             </tbody>
                         </table>
                     </div>
@@ -135,12 +118,10 @@
 
                 <!-- Pagination -->
                 <section class="pagination-section">
-                    <div class="pagination-info" id="paginationInfo">
-                        Showing 1–10 of 50
-                    </div>
+                    <div class="pagination-info" id="paginationInfo">—</div>
                     <div class="pagination-controls">
                         <button class="pagination-btn" id="btnPrev" disabled>← Previous</button>
-                        <span class="pagination-page" id="pageIndicator">Page 1 of 5</span>
+                        <span class="pagination-page" id="pageIndicator">Page 1</span>
                         <button class="pagination-btn" id="btnNext">Next →</button>
                     </div>
                 </section>
@@ -149,6 +130,6 @@
     </div>
 
     <script src="mockData.js"></script>
-    <script src="patients.js"></script>
+    <script src="reminders.js"></script>
 </body>
 </html>

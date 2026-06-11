@@ -1,186 +1,118 @@
-// ==========================================
-// CarePulse - Screen 2: Dashboard
-// ==========================================
-
-// ==========================================
-// Initialize Dashboard
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Get hospital name from session storage
-    const userSession = JSON.parse(sessionStorage.getItem('user'));
-    const hospitalName = userSession ? userSession.hospital : 'Hospital Name';
-    
-    document.getElementById('hospitalName').textContent = hospitalName;
-    
-    // Populate stats
-    populateStats();
-    
-    // Populate activity feed
-    populateActivityFeed();
-    
-    // Populate adherence bar
-    populateAdherenceBar();
-    
-    // Setup event listeners
-    setupEventListeners();
+// dashboard.js — CarePulse Dashboard
+document.addEventListener('DOMContentLoaded', async () => {
+  setupEventListeners();
+  await Promise.all([loadStats(), loadActivityFeed()]);
 });
 
-// ==========================================
-// Populate Statistics
-// ==========================================
-function populateStats() {
-    document.getElementById('statTotalPatients').textContent = dashboardStats.totalPatients;
-    document.getElementById('statAdherence').textContent = dashboardStats.adherenceRateThisWeek + '%';
-    document.getElementById('statAppointments').textContent = dashboardStats.appointmentsToday;
-    document.getElementById('statMessages').textContent = dashboardStats.messagesSentToday;
+async function loadStats() {
+  try {
+    const res  = await apiFetch('/api/patients/stats');
+    if (!res) return;
+    const data = await res.json();
+
+    document.getElementById('statTotalPatients').textContent = data.totalPatients ?? '—';
+    document.getElementById('statAdherence').textContent     =
+      data.adherence.rate !== undefined ? data.adherence.rate + '%' : '—';
+
+    document.getElementById('statAppointments').textContent = '—';
+    document.getElementById('statMessages').textContent     = '—';
+
+    populateAdherenceBar(
+      data.adherence.green,
+      data.adherence.amber,
+      data.adherence.red,
+    );
+  } catch (err) {
+    console.error('Failed to load stats:', err);
+    ['statTotalPatients','statAdherence','statAppointments','statMessages']
+      .forEach(id => document.getElementById(id).textContent = '—');
+  }
 }
 
-// ==========================================
-// Populate Adherence Bar
-// ==========================================
-function populateAdherenceBar() {
-    const total = dashboardStats.adherenceBars.green + dashboardStats.adherenceBars.amber + dashboardStats.adherenceBars.red;
-    
-    const greenPercent = (dashboardStats.adherenceBars.green / total) * 100;
-    const amberPercent = (dashboardStats.adherenceBars.amber / total) * 100;
-    const redPercent = (dashboardStats.adherenceBars.red / total) * 100;
-    
-    document.getElementById('adSegmentGreen').style.width = greenPercent + '%';
-    document.getElementById('adSegmentAmber').style.width = amberPercent + '%';
-    document.getElementById('adSegmentRed').style.width = redPercent + '%';
-    
-    document.getElementById('legendGreen').textContent = dashboardStats.adherenceBars.green + ' Green (≥80%)';
-    document.getElementById('legendAmber').textContent = dashboardStats.adherenceBars.amber + ' Amber (50-79%)';
-    document.getElementById('legendRed').textContent = dashboardStats.adherenceBars.red + ' Red (<50%)';
+function populateAdherenceBar(green, amber, red) {
+  const total = green + amber + red || 1;
+  document.getElementById('adSegmentGreen').style.width = (green / total * 100) + '%';
+  document.getElementById('adSegmentAmber').style.width = (amber / total * 100) + '%';
+  document.getElementById('adSegmentRed').style.width   = (red   / total * 100) + '%';
+  document.getElementById('legendGreen').textContent = `${green} Green (≥80%)`;
+  document.getElementById('legendAmber').textContent = `${amber} Amber (50-79%)`;
+  document.getElementById('legendRed').textContent   = `${red} Red (<50%)`;
 }
 
-// ==========================================
-// Populate Activity Feed
-// ==========================================
-function populateActivityFeed() {
-    const activityFeed = document.getElementById('activityFeed');
-    activityFeed.innerHTML = '';
-    
-    recentActivity.forEach(activity => {
-        const activityItem = createActivityItem(activity);
-        activityFeed.appendChild(activityItem);
-    });
-}
+async function loadActivityFeed() {
+  const feed = document.getElementById('activityFeed');
+  feed.innerHTML = '<div style="color:var(--color-text-secondary,#666);padding:1rem">Loading activity…</div>';
 
-// ==========================================
-// Create Activity Item Element
-// ==========================================
-function createActivityItem(activity) {
-    const item = document.createElement('div');
-    item.className = 'activity-item';
-    item.style.cursor = 'pointer';
-    
-    // Status badge icon
-    let statusIcon = '✓';
-    let statusClass = 'delivered';
-    
-    if (activity.status === 'Failed') {
-        statusIcon = '✗';
-        statusClass = 'failed';
-    } else if (activity.status === 'Responded') {
-        statusIcon = '↩';
-        statusClass = 'responded';
+  try {
+    // Activity feed comes from prescriptions until reminder module ships in Phase 4b
+    const data = await listPrescriptions({ page: 1, limit: 10 });
+    const items = data.results || [];
+
+    feed.innerHTML = '';
+
+    if (!items.length) {
+      feed.innerHTML = '<div style="color:var(--color-text-secondary,#666);padding:1rem">No recent activity yet.</div>';
+      return;
     }
-    
-    // Message type icon
-    let typeIcon = '💊';
-    if (activity.messageType === 'Appointment') {
-        typeIcon = '📅';
-    } else if (activity.messageType === 'Health Tip') {
-        typeIcon = '💡';
-    }
-    
-    item.innerHTML = `
-        <div class="activity-type-icon">${typeIcon}</div>
+
+    items.forEach(rx => {
+      const item       = document.createElement('div');
+      item.className   = 'activity-item';
+      item.style.cursor = 'pointer';
+
+      const patientName = rx.patient
+        ? `${rx.patient.givenName} ${rx.patient.familyName}`
+        : 'Unknown patient';
+
+      item.innerHTML = `
+        <div class="activity-type-icon">💊</div>
         <div class="activity-content">
-            <div class="activity-header">
-                <span class="activity-patient">${activity.patientName}</span>
-                <span class="activity-type">${activity.messageType}</span>
-            </div>
-            <div class="activity-message">${activity.message}</div>
-            <div class="activity-footer">
-                <span class="activity-time">${formatTime(activity.timeSent)}</span>
-                <span class="activity-status ${statusClass}">
-                    ${statusIcon} ${activity.status}
-                </span>
-            </div>
+          <div class="activity-header">
+            <span class="activity-patient">${patientName}</span>
+            <span class="activity-type">Prescription</span>
+          </div>
+          <div class="activity-message">${rx.drugName} ${rx.dose} — ${rx.frequency}</div>
+          <div class="activity-footer">
+            <span class="activity-time">${formatTime(rx.createdAt)}</span>
+            <span class="activity-status ${rx.active ? 'delivered' : 'failed'}">
+              ${rx.active ? '✓ Active' : '✗ Inactive'}
+            </span>
+          </div>
         </div>
-    `;
-    
-    // Make activity item clickable to navigate to patient
-    item.addEventListener('click', () => {
-        const patient = mockPatients.find(p => p.id === activity.patientId);
-        if (patient) {
-            // Navigate to patient profile (Screen 4 or similar)
-            sessionStorage.setItem('selectedPatient', JSON.stringify(patient));
-            window.location.href = 'patient-profile.html';
+      `;
+
+      item.addEventListener('click', () => {
+        if (rx.patient) {
+          sessionStorage.setItem('selectedPatient', JSON.stringify(normalisePatient(rx.patient)));
+          window.location.href = 'patient-profile.html';
         }
+      });
+
+      feed.appendChild(item);
     });
-    
-    return item;
+  } catch (err) {
+    console.error('Failed to load activity feed:', err);
+    feed.innerHTML = '<div style="color:var(--color-text-secondary,#666);padding:1rem">Could not load activity.</div>';
+  }
 }
 
-// ==========================================
-// Format Time
-// ==========================================
 function formatTime(datetime) {
-    const now = new Date();
-    const activityTime = new Date(datetime);
-    const diff = Math.floor((now - activityTime) / (1000 * 60)); // Minutes
-    
-    if (diff < 1) return 'Just now';
-    if (diff < 60) return `${diff}m ago`;
-    
-    const hours = Math.floor(diff / 60);
-    if (hours < 24) return `${hours}h ago`;
-    
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+  const diff = Math.floor((Date.now() - new Date(datetime)) / 60000);
+  if (diff < 1)   return 'Just now';
+  if (diff < 60)  return `${diff}m ago`;
+  const hours = Math.floor(diff / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
-// ==========================================
-// Event Listeners
-// ==========================================
 function setupEventListeners() {
-    // Add New Patient button
-    document.getElementById('btnAddPatient').addEventListener('click', () => {
-        window.location.href = 'add-patient.html';
-    });
-    
-    // View All Patients button
-    document.getElementById('btnViewPatients').addEventListener('click', () => {
-        window.location.href = 'patients.html';
-    });
-    
-    // Generate Reminders button
-    document.getElementById('btnGenerateReminders').addEventListener('click', () => {
-        alert('Reminders generated! Check the Reminders section.');
-        // TODO: Implement reminder generation logic
-    });
-    
-    // Logout button
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        if (confirm('Are you sure you want to logout?')) {
-            sessionStorage.clear();
-            window.location.href = 'index.html';
-        }
-    });
-    
-    // Sidebar navigation
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            // Remove active class from all links
-            navLinks.forEach(l => l.classList.remove('active'));
-            // Add active class to clicked link
-            link.classList.add('active');
-        });
-    });
+  document.getElementById('btnAddPatient').addEventListener('click', () => {
+    window.location.href = 'add-patient.html';
+  });
+  document.getElementById('btnViewPatients').addEventListener('click', () => {
+    window.location.href = 'patients.html';
+  });
+  document.getElementById('btnGenerateReminders').addEventListener('click', () => {
+    alert('Reminder scheduling coming in Phase 4b.');
+  });
 }
-
-console.log('Dashboard loaded');
