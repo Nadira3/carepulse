@@ -1,5 +1,5 @@
 // auth-guard.js — MUST be first script on every protected page
-const API_BASE = 'http://3.93.195.129:3000';
+const API_BASE = 'https://poker-imposing-jogging.ngrok-free.dev';
 
 (async function guardPage() {
   document.documentElement.style.visibility = 'hidden';
@@ -31,7 +31,7 @@ const API_BASE = 'http://3.93.195.129:3000';
     }
   } else {
     const res = await fetch(`${API_BASE}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${accessToken}`, 'ngrok-skip-browser-warning': 'true' },
       credentials: 'include',
     });
     if (!res.ok) {
@@ -50,7 +50,7 @@ const API_BASE = 'http://3.93.195.129:3000';
   // Fetch full user profile
   try {
     const meRes = await fetch(`${API_BASE}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${accessToken}`, 'ngrok-skip-browser-warning': 'true' },
       credentials: 'include',
     });
     if (meRes.ok) {

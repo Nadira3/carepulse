@@ -10,6 +10,7 @@ async function apiFetch(path, options = {}) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${getToken()}`,
+      'ngrok-skip-browser-warning': 'true',
       ...(options.headers || {}),
     },
     credentials: 'include',
@@ -36,6 +37,7 @@ async function apiFetch(path, options = {}) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
+        'ngrok-skip-browser-warning': 'true',
         ...(options.headers || {}),
       },
       credentials: 'include',

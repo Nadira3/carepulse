@@ -1,5 +1,5 @@
 // login.js
-const API_BASE = 'http://3.93.195.129:3000';
+const API_BASE = 'https://poker-imposing-jogging.ngrok-free.dev';
 
 // If already have a valid session, skip login
 (async function checkAlreadyLoggedIn() {
