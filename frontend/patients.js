@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadPatients() {
   setTableLoading(true);
   try {
+    // Try API first
     const data = await listPatients({
       page:      currentPage,
       limit:     itemsPerPage,
@@ -28,7 +29,6 @@ async function loadPatients() {
       adherence: activeFilters.adherence,
     });
 
-    // listPatients returns raw DB rows — normalise field names
     const patients = (data.results || []).map(normalisePatient);
     totalPatients  = data.total      || 0;
     totalPages     = data.totalPages || 1;
@@ -36,12 +36,61 @@ async function loadPatients() {
     updatePatientCountBadge(totalPatients);
     renderPatientTable(patients);
     updatePagination();
-  } catch (err) {
-    console.error('Failed to load patients:', err);
-    showTableError('Failed to load patients. Please refresh.');
-  } finally {
     setTableLoading(false);
+    return;
+  } catch (err) {
+    console.error('API unavailable, using Joshua\'s mock data:', err);
   }
+
+  // Fallback to Joshua's mock data
+  if (typeof mockPatients !== 'undefined') {
+    try {
+      // Apply filters to mock data
+      let filteredPatients = [...mockPatients];
+
+      if (activeFilters.search) {
+        const search = activeFilters.search.toLowerCase();
+        filteredPatients = filteredPatients.filter(p => 
+          p.name.toLowerCase().includes(search) || 
+          p.id.toLowerCase().includes(search)
+        );
+      }
+
+      if (activeFilters.disease && activeFilters.disease !== 'All') {
+        filteredPatients = filteredPatients.filter(p => {
+          const disease = p.disease === 'Hypertension & Diabetes' ? 'Both' : p.disease;
+          return disease === activeFilters.disease;
+        });
+      }
+
+      if (activeFilters.adherence && activeFilters.adherence !== 'All') {
+        filteredPatients = filteredPatients.filter(p => {
+          const status = p.adherenceRate >= 80 ? 'On Track' : 
+                        p.adherenceRate >= 50 ? 'At Risk' : 'Non-Adherent';
+          return status === activeFilters.adherence;
+        });
+      }
+
+      totalPatients = filteredPatients.length;
+      totalPages = Math.ceil(totalPatients / itemsPerPage);
+
+      // Paginate
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = startIdx + itemsPerPage;
+      const pagePatients = filteredPatients.slice(startIdx, endIdx);
+
+      updatePatientCountBadge(totalPatients);
+      renderPatientTable(pagePatients);
+      updatePagination();
+    } catch (e) {
+      console.error('Failed with mock data:', e);
+      showTableError('Failed to load patients. Please try again.');
+    }
+  } else {
+    showTableError('Failed to load patients. Please refresh the page.');
+  }
+  
+  setTableLoading(false);
 }
 
 function setTableLoading(loading) {
@@ -88,7 +137,7 @@ function createPatientRow(patient) {
   row.className = 'patient-row';
   row.style.cursor = 'pointer';
 
-  const adherenceStatus  = getAdherenceStatus(patient.adherence);
+  const adherenceStatus  = getAdherenceStatus(patient.adherenceRate);
   const maskedPhone      = maskPhone(patient.phone || '');
   const lastReminderDate = patient.lastReminder    ? formatDateShort(patient.lastReminder)    : '—';
   const nextApptDate     = patient.nextAppointment ? formatDateShort(patient.nextAppointment) : '—';
@@ -138,8 +187,16 @@ function getAdherenceStatus(adherence) {
 }
 
 function maskPhone(phone) {
-  const parts = phone.split('-');
-  if (parts.length >= 4) return `${parts[0]}-${parts[1]}-****-${parts[3]}`;
+  if (!phone) return '—';
+  // Remove any non-digit characters except leading +
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Format: show first 4 digits, then ****, then last 4 digits
+  if (cleaned.length >= 8) {
+    const first = cleaned.substring(0, 4);
+    const last = cleaned.substring(cleaned.length - 4);
+    return `${first}****${last}`;
+  }
   return phone;
 }
 

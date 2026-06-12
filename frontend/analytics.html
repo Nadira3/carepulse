@@ -88,31 +88,31 @@
                         <div class="kpi-content">
                             <p class="kpi-label">Adherence Rate</p>
                             <p class="kpi-value" id="kpiAdherence">78%</p>
-                            <p class="kpi-trend">↑ 12% vs last quarter</p>
+                            <p class="kpi-trend">↑ 12% vs standard care</p>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon">📅</div>
                         <div class="kpi-content">
-                            <p class="kpi-label">Missed Appointment Rate</p>
+                            <p class="kpi-label">Missed Appointments</p>
                             <p class="kpi-value" id="kpiMissedAppt">14%</p>
-                            <p class="kpi-trend">↓ 8% vs last quarter</p>
+                            <p class="kpi-trend">↓ 36% improvement</p>
                         </div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-icon">📱</div>
+                        <div class="kpi-icon">💬</div>
                         <div class="kpi-content">
-                            <p class="kpi-label">SMS Delivery Rate</p>
-                            <p class="kpi-value" id="kpiSmsDelivery">96%</p>
+                            <p class="kpi-label">Messages Sent</p>
+                            <p class="kpi-value" id="kpiMessagesSent">2,847</p>
+                            <p class="kpi-trend">↑ Last 3 months</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">✓</div>
+                        <div class="kpi-content">
+                            <p class="kpi-label">Delivery Rate</p>
+                            <p class="kpi-value" id="kpiDeliveryRate">96%</p>
                             <p class="kpi-trend">↑ 2% vs last quarter</p>
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-icon">👥</div>
-                        <div class="kpi-content">
-                            <p class="kpi-label">Active Patients</p>
-                            <p class="kpi-value" id="kpiActivePatients">50</p>
-                            <p class="kpi-trend">↑ 8 new enrollments</p>
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@
                     <p class="chart-subtitle">CarePulse reminders vs. standard care</p>
                 </div>
                 <div class="chart-container">
-                    <canvas id="adherenceChart"></canvas>
+                    <img src="images/Adherence Rate Over 3 Months_ CarePulse vs. Control.png" alt="Adherence Rate Over 3 Months" class="chart-image">
                 </div>
             </section>
 
@@ -137,7 +137,7 @@
                         <p class="chart-subtitle">Before vs after CarePulse enrolment</p>
                     </div>
                     <div class="chart-container">
-                        <canvas id="missedAppointmentsChart"></canvas>
+                        <img src="images/Missed Appointments_ CarePulse vs. Control.png" alt="Missed Appointments Comparison" class="chart-image">
                     </div>
                 </section>
 
@@ -147,7 +147,7 @@
                         <p class="chart-subtitle">Last 3 months</p>
                     </div>
                     <div class="chart-container">
-                        <canvas id="smsDeliveryChart"></canvas>
+                        <img src="images/SMS Delivery & Response Rate (CarePulse Group).png" alt="SMS Delivery and Response Rate" class="chart-image">
                     </div>
                 </section>
             </div>
@@ -160,17 +160,17 @@
                         <p class="chart-subtitle">Current enrolment cohort</p>
                     </div>
                     <div class="chart-container">
-                        <canvas id="riskDistributionChart"></canvas>
+                        <img src="images/Patient Risk Distribution.png" alt="Patient Risk Distribution" class="chart-image">
                     </div>
                 </section>
 
                 <section class="chart-section">
                     <div class="chart-header">
-                        <h2>Patient Adherence Status</h2>
-                        <p class="chart-subtitle">Breakdown by adherence level</p>
+                        <h2>Group Risk Comparison</h2>
+                        <p class="chart-subtitle">CarePulse vs control group</p>
                     </div>
                     <div class="chart-container">
-                        <canvas id="adherenceStatusChart"></canvas>
+                        <img src="images/Group Risk Distribution Comparison.png" alt="Group Risk Distribution Comparison" class="chart-image">
                     </div>
                 </section>
             </div>
@@ -181,32 +181,8 @@
                     <h2>Programme Impact Projection</h2>
                     <p class="chart-subtitle">Estimated annual clinical and economic outcomes</p>
                 </div>
-                <div class="impact-projection">
-                    <div class="impact-stage stage-1">
-                        <div class="stage-number">1</div>
-                        <div class="stage-content">
-                            <p class="stage-title">Patients Enrolled</p>
-                            <p class="stage-value">500</p>
-                        </div>
-                    </div>
-                    <div class="impact-arrow">→</div>
-                    <div class="impact-stage stage-2">
-                        <div class="stage-number">2</div>
-                        <div class="stage-content">
-                            <p class="stage-title">Additional Adherent Patients</p>
-                            <p class="stage-value">175</p>
-                            <p class="stage-note">(35% improvement)</p>
-                        </div>
-                    </div>
-                    <div class="impact-arrow">→</div>
-                    <div class="impact-stage stage-3">
-                        <div class="stage-number">3</div>
-                        <div class="stage-content">
-                            <p class="stage-title">Avoidable Complications Prevented Annually</p>
-                            <p class="stage-value">₦87.5M</p>
-                            <p class="stage-note">(Economic savings)</p>
-                        </div>
-                    </div>
+                <div class="chart-container">
+                    <img src="images/Impact Projection_ 500 Enrolled Patients (35_ Adherence Improvement).png" alt="Impact Projection" class="chart-image">
                 </div>
             </section>
 
@@ -249,8 +225,7 @@
         </div>
     </div>
 
-    <!-- Load Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <!-- No longer using Chart.js (now using static images from Joshua) -->
     <script src="analytics.js"></script>
 </body>
 </html>

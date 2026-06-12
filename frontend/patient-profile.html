@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Profile — CarePulse</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>CarePulse</h1>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+        <a href="patients.html" class="nav-link">👥 Patients</a>
+        <a href="add-patient.html" class="nav-link">➕ Add Patient</a>
+        <a href="medication.html" class="nav-link">💊 Medication</a>
+        <a href="analytics.html" class="nav-link">📈 Analytics</a>
+        <a href="reminders.html" class="nav-link">🔔 Reminders</a>
+        <a href="settings.html" class="nav-link">⚙️ Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="logout-btn">🚪 Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <h2>Patient Profile</h2>
+        <div class="header-controls">
+          <button id="backBtn" class="btn-secondary" style="margin-right:10px">← Back to Patients</button>
+          <span id="hospitalName" class="hospital-name">ISTH Irrua</span>
+        </div>
+      </div>
+
+      <!-- Profile Container -->
+      <div id="profileContainer" class="profile-container" style="display:none">
+        
+        <!-- Patient Header -->
+        <div class="profile-header">
+          <div class="profile-header-left">
+            <h3 id="patientName" class="profile-patient-name">—</h3>
+            <p id="patientId" class="profile-patient-id">ID: —</p>
+            <p id="patientPhone" class="profile-patient-phone">Phone: —</p>
+          </div>
+          <div class="profile-header-right">
+            <div class="profile-stat">
+              <span class="stat-label">Age</span>
+              <span id="patientAge" class="stat-value">—</span>
+            </div>
+            <div class="profile-stat">
+              <span class="stat-label">Disease</span>
+              <span id="patientDisease" class="stat-value">—</span>
+            </div>
+            <div class="profile-stat">
+              <span class="stat-label">Group</span>
+              <span id="patientGroup" class="stat-value badge-neutral">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Adherence Overview -->
+        <div class="profile-section">
+          <h4 class="section-title">Adherence Status</h4>
+          <div class="adherence-overview">
+            <div class="adherence-main">
+              <div class="adherence-badge-large">
+                <span id="adherenceBadgeLarge" class="badge-green">On Track</span>
+              </div>
+              <div class="adherence-rate">
+                <span class="rate-label">Current Rate</span>
+                <span id="adherenceRate" class="rate-value">—%</span>
+              </div>
+            </div>
+            <div class="adherence-stats">
+              <div class="stat-item">
+                <span class="stat-name">SMS Response Rate</span>
+                <span id="responseRate" class="stat-number">—%</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-name">Total SMS Received</span>
+                <span id="totalSMS" class="stat-number">—</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-name">SMS Delivery Status</span>
+                <span id="smsStatus" class="stat-number badge-neutral">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Adherence Trend Chart -->
+        <div class="profile-section">
+          <h4 class="section-title">3-Month Adherence Trend</h4>
+          <div class="adherence-trend">
+            <div class="trend-bar">
+              <div class="trend-item">
+                <span class="trend-month">Month 1</span>
+                <div class="trend-bar-container">
+                  <div id="trendMo1" class="trend-bar-fill" style="width:0%"></div>
+                </div>
+                <span id="trendMo1Label" class="trend-value">—%</span>
+              </div>
+              <div class="trend-item">
+                <span class="trend-month">Month 2</span>
+                <div class="trend-bar-container">
+                  <div id="trendMo2" class="trend-bar-fill" style="width:0%"></div>
+                </div>
+                <span id="trendMo2Label" class="trend-value">—%</span>
+              </div>
+              <div class="trend-item">
+                <span class="trend-month">Month 3</span>
+                <div class="trend-bar-container">
+                  <div id="trendMo3" class="trend-bar-fill" style="width:0%"></div>
+                </div>
+                <span id="trendMo3Label" class="trend-value">—%</span>
+              </div>
+            </div>
+            <div class="trend-summary">
+              <p id="trendSummary" class="summary-text">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Missed Appointments -->
+        <div class="profile-section">
+          <h4 class="section-title">Missed Appointments</h4>
+          <div class="missed-appointments">
+            <div class="appointment-item">
+              <span class="appointment-label">Month 1</span>
+              <span id="missedMo1" class="appointment-count">—</span>
+            </div>
+            <div class="appointment-item">
+              <span class="appointment-label">Month 2</span>
+              <span id="missedMo2" class="appointment-count">—</span>
+            </div>
+            <div class="appointment-item">
+              <span class="appointment-label">Month 3</span>
+              <span id="missedMo3" class="appointment-count">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="profile-actions">
+          <button id="editPatientBtn" class="btn-primary">✏️ Edit Patient</button>
+          <button id="viewMedicationsBtn" class="btn-primary">💊 View Medications</button>
+        </div>
+
+      </div>
+
+      <!-- Loading State -->
+      <div id="profileLoading" class="profile-loading">
+        <div class="spinner"></div>
+        <p>Loading patient profile…</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="profileError" class="profile-error" style="display:none">
+        <p>⚠️ Patient not found. Please select a patient from the list.</p>
+        <button id="errorBackBtn" class="btn-secondary">← Return to Patients</button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="mockData.js"></script>
+  <script src="api.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="patient-profile.js"></script>
+</body>
+</html>
