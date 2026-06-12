@@ -47,7 +47,7 @@ const API_BASE = 'http://3.93.195.129:3000';
   // Auth confirmed
   window.emrAccessToken = accessToken;
 
-  // Fetch full user profile and store in sessionStorage
+  // Fetch full user profile
   try {
     const meRes = await fetch(`${API_BASE}/api/auth/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -61,7 +61,9 @@ const API_BASE = 'http://3.93.195.129:3000';
     // non-fatal
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  // By the time async auth completes, DOM is already loaded
+  // Use readyState check instead of DOMContentLoaded
+  function attachUIHandlers() {
     const hospitalEl = document.getElementById('hospitalName');
     if (hospitalEl) hospitalEl.textContent = 'ISTH Irrua';
 
@@ -72,8 +74,31 @@ const API_BASE = 'http://3.93.195.129:3000';
     }
 
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', () => window.emrLogout());
-  });
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        logoutBtn.disabled = true;
+        try {
+          await fetch(`${API_BASE}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+          });
+        } catch (_) {
+          // ignore network errors on logout
+        } finally {
+          sessionStorage.clear();
+          window.location.replace('/index.html');
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachUIHandlers);
+  } else {
+    attachUIHandlers();
+  }
 
   document.documentElement.style.visibility = 'visible';
 })();
