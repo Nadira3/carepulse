@@ -109,9 +109,6 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
-  }, 2000);
-}
-
 // ── Toast Notification ─────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');

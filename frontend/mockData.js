@@ -4,7 +4,7 @@
 
 // ── Patient Names (Nigerian) ────────────────────────────────────────────────
 const patientNames = [
-  'Ade Okafor', 'Ngozi Amara', 'Musa Ibrahim', 'Chioma Nwosu', 'Yusuf Ahmed',
+  'Ade Okafor', 'Ngozi Eze', 'Musa Abdullahi', 'Chioma Nwosu', 'Yusuf Ahmed',
   'Funmi Adeyemi', 'Emeka Okoro', 'Zainab Hassan', 'Tunde Oluwaseun', 'Ada Ekwueme',
   'Nnamdi Igwe', 'Blessing Osei', 'Ahmed Malik', 'Chinyere Eze', 'Seun Balogun',
   'Hafsat Gani', 'Okechukwu Kalu', 'Mariam Sani', 'Kofi Mensah', 'Binta Diallo',
@@ -20,11 +20,11 @@ const patientNames = [
 const joshuaDataset = [
   // CarePulse Group (CP-001 to CP-025) — With Reminders
   {
-    id: 'CP-001', group: 'CarePulse', disease: 'Hypertension', mo1: 42, mo2: 61, mo3: 78, missedMo1: 1, missedMo2: 0, missedMo3: 0, smsStatus: 'Delivered', responseRate: 65 },
+    id: 'CP-001', group: 'CarePulse', disease: 'Hypertension', age: 52, mo1: 42, mo2: 61, mo3: 82, missedMo1: 1, missedMo2: 0, missedMo3: 0, smsStatus: 'Delivered', responseRate: 65 },
   {
-    id: 'CP-002', group: 'CarePulse', disease: 'Diabetes', mo1: 38, mo2: 55, mo3: 72, missedMo1: 2, missedMo2: 1, missedMo3: 0, smsStatus: 'Delivered', responseRate: 58 },
+    id: 'CP-002', group: 'CarePulse', disease: 'Diabetes', age: 45, mo1: 38, mo2: 55, mo3: 65, missedMo1: 2, missedMo2: 1, missedMo3: 0, smsStatus: 'Delivered', responseRate: 58 },
   {
-    id: 'CP-003', group: 'CarePulse', disease: 'Both', mo1: 45, mo2: 68, mo3: 82, missedMo1: 1, missedMo2: 0, missedMo3: 0, smsStatus: 'Delivered', responseRate: 70 },
+    id: 'CP-003', group: 'CarePulse', disease: 'Both', age: 60, mo1: 45, mo2: 68, mo3: 45, missedMo1: 1, missedMo2: 0, missedMo3: 0, smsStatus: 'Delivered', responseRate: 70 },
   {
     id: 'CP-004', group: 'CarePulse', disease: 'Hypertension', mo1: 40, mo2: 59, mo3: 75, missedMo1: 2, missedMo2: 1, missedMo3: 1, smsStatus: 'Delivered', responseRate: 60 },
   {
@@ -125,14 +125,14 @@ const joshuaDataset = [
 
 // ── Generate Patient Objects with Real Data ──────────────────────────────────
 function getAdherenceBadge(adherence) {
-  if (adherence >= 80) return 'On Track';
-  if (adherence >= 50) return 'At Risk';
-  return 'Non-Adherent';
+  if (adherence >= 80) return { label: 'On Track', class: 'badge-green' };
+  if (adherence >= 50) return { label: 'At Risk', class: 'badge-amber' };
+  return { label: 'Non-Adherent', class: 'badge-red' };
 }
 
 const mockPatients = joshuaDataset.map((data, index) => {
   const name = patientNames[index];
-  const age = 35 + Math.floor(Math.random() * 40); // 35-75 years
+  const age = data.age || (35 + Math.floor(Math.random() * 40)); // Use dataset age if provided, else random 35-75 years
   const phone = '+234' + (Math.floor(Math.random() * 9000000000) + 1000000000);
   const adherence = data.mo3; // Month 3 adherence
   const badge = getAdherenceBadge(adherence);
@@ -207,18 +207,18 @@ const recentActivity = [
     icon: '📅'
   },
   {
-    type: 'adherence',
+    type: 'non-adherence',
     patient: mockPatients[2].name,
-    message: 'Achieved 80%+ adherence',
+    message: 'no response to medication reminder',
     time: '6 hours ago',
-    icon: '✓'
+    icon: '⚠️'
   },
   {
     type: 'response',
     patient: mockPatients[3].name,
     message: 'Responded YES to appointment reminder',
     time: '8 hours ago',
-    icon: '📱'
+    icon: '📅'
   },
   {
     type: 'enrollment',
@@ -246,7 +246,7 @@ const recentActivity = [
     patient: mockPatients[7].name,
     message: 'Missed medication reminder (no response)',
     time: '3 days ago',
-    icon: '❌'
+    icon: '⚠️'
   },
   {
     type: 'adherence',
@@ -260,7 +260,7 @@ const recentActivity = [
     patient: mockPatients[9].name,
     message: 'Responded RESCHEDULE to appointment',
     time: '5 days ago',
-    icon: '⏱️'
+    icon: '📅'
   }
 ];
 
