@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarePulse - Reminders</title>
+    <title>CarePulse - Reminder History</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -44,73 +44,86 @@
                         <span class="nav-icon">💊</span>
                         <span class="nav-label">Medications</span>
                     </a>
+                    <a href="analytics.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Analytics</span>
+                    </a>
                     <a href="reminders.html" class="nav-link active">
                         <span class="nav-icon">🔔</span>
                         <span class="nav-label">Reminders</span>
-                    </a>
-                    <a href="messages.html" class="nav-link">
-                        <span class="nav-icon">💬</span>
-                        <span class="nav-label">Messages</span>
-                    </a>
-                    <a href="reports.html" class="nav-link">
-                        <span class="nav-icon">📈</span>
-                        <span class="nav-label">Reports</span>
-                    </a>
-                    <a href="settings.html" class="nav-link">
-                        <span class="nav-icon">⚙️</span>
-                        <span class="nav-label">Settings</span>
                     </a>
                 </nav>
             </aside>
 
             <main class="main-content">
-                <section class="page-header">
-                    <div class="header-left">
-                        <h1>Reminders</h1>
-                        <span class="patient-count-badge" id="reminderCountBadge">—</span>
-                    </div>
-                </section>
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1 class="page-title">Reminder History</h1>
+                    <p class="page-subtitle">Full log of SMS reminders sent to patients</p>
+                </div>
 
                 <!-- Filter Bar -->
-                <section class="filter-bar">
-                    <div class="filter-group">
-                        <label for="filterType">Type:</label>
-                        <select id="filterType" class="filter-select">
-                            <option value="">All Types</option>
-                            <option value="MEDICATION">Medication</option>
-                            <option value="APPOINTMENT">Appointment</option>
-                            <option value="LIFESTYLE">Lifestyle</option>
-                        </select>
+                <section class="reminder-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="searchPatient">Patient Name</label>
+                            <input 
+                                type="text" 
+                                id="searchPatient" 
+                                class="filter-input" 
+                                placeholder="Search patient..."
+                            >
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterMessageType">Message Type</label>
+                            <select id="filterMessageType" class="filter-select">
+                                <option value="">All Types</option>
+                                <option value="Medication">Medication</option>
+                                <option value="Appointment">Appointment</option>
+                                <option value="Health Tip">Health Tip</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterDeliveryStatus">Delivery Status</label>
+                            <select id="filterDeliveryStatus" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Failed">Failed</option>
+                                <option value="Responded">Responded</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterDateRange">Date Range</label>
+                            <input 
+                                type="date" 
+                                id="filterDateRange" 
+                                class="filter-input"
+                            >
+                        </div>
+                        <div class="filter-group">
+                            <button id="filterResetBtn" class="filter-reset-btn">Reset Filters</button>
+                        </div>
                     </div>
-                    <div class="filter-group">
-                        <label for="filterStatus">Status:</label>
-                        <select id="filterStatus" class="filter-select">
-                            <option value="">All Statuses</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="SENT">Sent</option>
-                            <option value="FAILED">Failed</option>
-                            <option value="CANCELLED">Cancelled</option>
-                        </select>
-                    </div>
-                    <button class="reset-btn" id="btnReset">🔄 Reset</button>
                 </section>
 
                 <!-- Reminders Table -->
-                <section class="table-section">
-                    <div class="table-wrapper">
-                        <table class="patient-table">
+                <section class="reminders-section">
+                    <div class="table-container">
+                        <table class="reminders-table">
                             <thead>
                                 <tr>
-                                    <th>Patient</th>
-                                    <th>Type</th>
-                                    <th>Message</th>
-                                    <th>Scheduled</th>
-                                    <th>Sent</th>
-                                    <th>Status</th>
-                                    <th>Confirmed</th>
+                                    <th class="th-expand"></th>
+                                    <th class="th-patient">Patient Name</th>
+                                    <th class="th-disease">Disease</th>
+                                    <th class="th-type">Message Type</th>
+                                    <th class="th-preview">Message Preview</th>
+                                    <th class="th-sent">Sent At</th>
+                                    <th class="th-status">Delivery Status</th>
+                                    <th class="th-response">Patient Response</th>
                                 </tr>
                             </thead>
-                            <tbody id="reminderTableBody">
+                            <tbody id="remindersTableBody">
+                                <!-- Populated by reminders.js -->
                             </tbody>
                         </table>
                     </div>
@@ -118,18 +131,19 @@
 
                 <!-- Pagination -->
                 <section class="pagination-section">
-                    <div class="pagination-info" id="paginationInfo">—</div>
+                    <div class="pagination-info">
+                        Showing <span id="paginationStart">1</span>-<span id="paginationEnd">10</span> of <span id="paginationTotal">0</span> reminders
+                    </div>
                     <div class="pagination-controls">
-                        <button class="pagination-btn" id="btnPrev" disabled>← Previous</button>
-                        <span class="pagination-page" id="pageIndicator">Page 1</span>
-                        <button class="pagination-btn" id="btnNext">Next →</button>
+                        <button id="paginationPrev" class="pagination-btn">← Previous</button>
+                        <span id="paginationPages" class="pagination-pages">Page 1 of 1</span>
+                        <button id="paginationNext" class="pagination-btn">Next →</button>
                     </div>
                 </section>
             </main>
         </div>
     </div>
 
-    <script src="mockData.js"></script>
     <script src="reminders.js"></script>
 </body>
 </html>

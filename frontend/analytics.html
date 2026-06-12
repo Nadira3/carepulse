@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarePulse - Programme Analytics</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="auth-guard.js"></script>
+    <script src="api.js"></script>
+    <div class="dashboard-wrapper">
+        <!-- Top Navigation Bar -->
+        <nav class="top-navbar">
+            <div class="navbar-left">
+                <img src="images/logo.png" alt="CarePulse Logo" class="navbar-logo">
+                <span class="navbar-title">CarePulse AI</span>
+            </div>
+            <div class="navbar-center">
+                <span class="hospital-name" id="hospitalName"></span>
+            </div>
+            <div class="navbar-right">
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <span>🚪</span>
+                </button>
+            </div>
+        </nav>
+
+        <div class="dashboard-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                    <a href="patients.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-label">Patients</span>
+                    </a>
+                    <a href="add-patient.html" class="nav-link">
+                        <span class="nav-icon">➕</span>
+                        <span class="nav-label">Add Patient</span>
+                    </a>
+                    <a href="medication.html" class="nav-link">
+                        <span class="nav-icon">💊</span>
+                        <span class="nav-label">Medications</span>
+                    </a>
+                    <a href="analytics.html" class="nav-link active">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Analytics</span>
+                    </a>
+                    <a href="reminders.html" class="nav-link">
+                        <span class="nav-icon">🔔</span>
+                        <span class="nav-label">Reminders</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+        <div class="analytics-container">
+            <!-- Header with Title and Controls -->
+            <div class="analytics-header">
+                <div class="analytics-title-section">
+                    <h1 class="page-title">Programme Analytics</h1>
+                    <p class="page-subtitle">Evidence of programme impact for hospital management and funders</p>
+                </div>
+                <div class="analytics-controls">
+                    <div class="date-range-selector">
+                        <label for="dateRange">Date Range:</label>
+                        <select id="dateRange" class="date-select">
+                            <option value="1month">Last 1 Month</option>
+                            <option value="3months" selected>Last 3 Months</option>
+                            <option value="6months">Last 6 Months</option>
+                            <option value="1year">Last 1 Year</option>
+                        </select>
+                    </div>
+                    <button id="exportBtn" class="export-button">📥 Export Report (PDF)</button>
+                </div>
+            </div>
+
+            <!-- KPI Summary Cards -->
+            <section class="kpi-section">
+                <div class="kpi-cards-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon">💊</div>
+                        <div class="kpi-content">
+                            <p class="kpi-label">Adherence Rate</p>
+                            <p class="kpi-value" id="kpiAdherence">78%</p>
+                            <p class="kpi-trend">↑ 12% vs last quarter</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">📅</div>
+                        <div class="kpi-content">
+                            <p class="kpi-label">Missed Appointment Rate</p>
+                            <p class="kpi-value" id="kpiMissedAppt">14%</p>
+                            <p class="kpi-trend">↓ 8% vs last quarter</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">📱</div>
+                        <div class="kpi-content">
+                            <p class="kpi-label">SMS Delivery Rate</p>
+                            <p class="kpi-value" id="kpiSmsDelivery">96%</p>
+                            <p class="kpi-trend">↑ 2% vs last quarter</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">👥</div>
+                        <div class="kpi-content">
+                            <p class="kpi-label">Active Patients</p>
+                            <p class="kpi-value" id="kpiActivePatients">50</p>
+                            <p class="kpi-trend">↑ 8 new enrollments</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart 1: Adherence Over Time (Full Width) -->
+            <section class="chart-section full-width">
+                <div class="chart-header">
+                    <h2>Adherence Rate Over Time</h2>
+                    <p class="chart-subtitle">CarePulse reminders vs. standard care</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="adherenceChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Charts Row 1: Missed Appointments & SMS Delivery -->
+            <div class="charts-row">
+                <section class="chart-section">
+                    <div class="chart-header">
+                        <h2>Missed Appointments</h2>
+                        <p class="chart-subtitle">Before vs after CarePulse enrolment</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="missedAppointmentsChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="chart-section">
+                    <div class="chart-header">
+                        <h2>SMS Delivery Status</h2>
+                        <p class="chart-subtitle">Last 3 months</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="smsDeliveryChart"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Charts Row 2: Patient Risk & Patient Adherence -->
+            <div class="charts-row">
+                <section class="chart-section">
+                    <div class="chart-header">
+                        <h2>Patient Risk Distribution</h2>
+                        <p class="chart-subtitle">Current enrolment cohort</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="chart-section">
+                    <div class="chart-header">
+                        <h2>Patient Adherence Status</h2>
+                        <p class="chart-subtitle">Breakdown by adherence level</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="adherenceStatusChart"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Chart 5: Impact Projection (Full Width) -->
+            <section class="chart-section full-width">
+                <div class="chart-header">
+                    <h2>Programme Impact Projection</h2>
+                    <p class="chart-subtitle">Estimated annual clinical and economic outcomes</p>
+                </div>
+                <div class="impact-projection">
+                    <div class="impact-stage stage-1">
+                        <div class="stage-number">1</div>
+                        <div class="stage-content">
+                            <p class="stage-title">Patients Enrolled</p>
+                            <p class="stage-value">500</p>
+                        </div>
+                    </div>
+                    <div class="impact-arrow">→</div>
+                    <div class="impact-stage stage-2">
+                        <div class="stage-number">2</div>
+                        <div class="stage-content">
+                            <p class="stage-title">Additional Adherent Patients</p>
+                            <p class="stage-value">175</p>
+                            <p class="stage-note">(35% improvement)</p>
+                        </div>
+                    </div>
+                    <div class="impact-arrow">→</div>
+                    <div class="impact-stage stage-3">
+                        <div class="stage-number">3</div>
+                        <div class="stage-content">
+                            <p class="stage-title">Avoidable Complications Prevented Annually</p>
+                            <p class="stage-value">₦87.5M</p>
+                            <p class="stage-note">(Economic savings)</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Findings Section -->
+            <section class="findings-section">
+                <h2>Key Findings</h2>
+                <div class="findings-grid">
+                    <div class="finding-card">
+                        <div class="finding-icon">✓</div>
+                        <div class="finding-content">
+                            <h3>Adherence Improvement</h3>
+                            <p>CarePulse recipients show 12% higher adherence rates compared to the control group over the 3-month period.</p>
+                        </div>
+                    </div>
+                    <div class="finding-card">
+                        <div class="finding-icon">✓</div>
+                        <div class="finding-content">
+                            <h3>Appointment Compliance</h3>
+                            <p>Missed appointment rates reduced from 22% to 14% among enrolled patients, a 36% improvement.</p>
+                        </div>
+                    </div>
+                    <div class="finding-card">
+                        <div class="finding-icon">✓</div>
+                        <div class="finding-content">
+                            <h3>High SMS Reliability</h3>
+                            <p>96% SMS delivery success rate ensures patients receive medication reminders and appointment notifications reliably.</p>
+                        </div>
+                    </div>
+                    <div class="finding-card">
+                        <div class="finding-icon">✓</div>
+                        <div class="finding-content">
+                            <h3>Rapid Scale-up Potential</h3>
+                            <p>Current infrastructure can support 500+ patients with existing resource allocation, enabling rapid programme expansion.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Load Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="analytics.js"></script>
+</body>
+</html>
