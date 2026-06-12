@@ -29,14 +29,19 @@ async function loadStats() {
   }
 }
 
-function populateAdherenceBar(green, amber, red) {
-  const total = green + amber + red || 1;
-  document.getElementById('adSegmentGreen').style.width = (green / total * 100) + '%';
-  document.getElementById('adSegmentAmber').style.width = (amber / total * 100) + '%';
-  document.getElementById('adSegmentRed').style.width   = (red   / total * 100) + '%';
+function populateAdherenceBar(green, amber, red, untracked = 0) {
+  const total = green + amber + red + untracked || 1;
+  document.getElementById('adSegmentGreen').style.width = (green     / total * 100) + '%';
+  document.getElementById('adSegmentAmber').style.width = (amber     / total * 100) + '%';
+  document.getElementById('adSegmentRed').style.width   = (red       / total * 100) + '%';
   document.getElementById('legendGreen').textContent = `${green} Green (≥80%)`;
   document.getElementById('legendAmber').textContent = `${amber} Amber (50-79%)`;
   document.getElementById('legendRed').textContent   = `${red} Red (<50%)`;
+  // Show untracked count in legend if any
+  const legendRed = document.getElementById('legendRed');
+  if (untracked > 0) {
+    legendRed.textContent = `${red} Red (<50%) · ${untracked} Untracked`;
+  }
 }
 
 async function loadActivityFeed() {
@@ -112,7 +117,21 @@ function setupEventListeners() {
   document.getElementById('btnViewPatients').addEventListener('click', () => {
     window.location.href = 'patients.html';
   });
-  document.getElementById('btnGenerateReminders').addEventListener('click', () => {
-    alert('Reminder scheduling coming in Phase 4b.');
+  document.getElementById('btnGenerateReminders').addEventListener('click', async () => {
+    const btn = document.getElementById('btnGenerateReminders');
+    btn.disabled    = true;
+    btn.textContent = '⏳ Generating...';
+    try {
+      const res  = await apiFetch('/api/reminders/trigger', { method: 'POST' });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed');
+      alert(`✓ ${data.message}`);
+    } catch (err) {
+      alert(`Failed to generate reminders: ${err.message}`);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = '🔔 Generate Reminders';
+    }
   });
 }

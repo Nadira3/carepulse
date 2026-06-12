@@ -138,6 +138,7 @@ async function handleSubmitForm() {
     age:                parseInt(document.getElementById('age').value),
     phone:              document.getElementById('phone').value.trim(),
     preferredLanguage:  document.getElementById('language').value,
+    preferredChannel:   document.getElementById('preferredChannel').value,
     primaryDiagnosis:   document.getElementById('diagnosis').value.trim(),
     secondaryCondition: document.getElementById('secondary').value.trim() || undefined,
     clinicianName:      document.getElementById('clinician').value.trim(),

@@ -174,6 +174,59 @@ function normalisePatient(p) {
   };
 }
 
+async function updatePatient(id, data) {
+  const res = await apiFetch(`/api/patients/${id}`, {
+    method: 'PATCH',
+    body:   JSON.stringify(data),
+  });
+  if (!res) return null;
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || 'Failed to update patient');
+  return result;
+}
+
+async function updateAppointment(id, data) {
+  const res = await apiFetch(`/api/patients/${id}/appointment`, {
+    method: 'PATCH',
+    body:   JSON.stringify(data),
+  });
+  if (!res) return null;
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || 'Failed to update appointment');
+  return result;
+}
+
+async function listUsers({ page = 1, limit = 20 } = {}) {
+  const params = new URLSearchParams({ page, limit });
+  const res    = await apiFetch(`/api/auth/users?${params}`);
+  if (!res) return { results: [], total: 0 };
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to load users');
+  return data;
+}
+
+async function createClinician(data) {
+  const res = await apiFetch('/api/auth/register', {
+    method: 'POST',
+    body:   JSON.stringify(data),
+  });
+  if (!res) return null;
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || 'Failed to create clinician');
+  return result;
+}
+
+async function updateUserStatus(id, isActive) {
+  const res = await apiFetch(`/api/auth/users/${id}/status`, {
+    method: 'PATCH',
+    body:   JSON.stringify({ isActive }),
+  });
+  if (!res) return null;
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || 'Failed to update user');
+  return result;
+}
+
 // Expose all API functions globally for use across HTML pages
 window.apiFetch                  = apiFetch;
 window.listPatients              = listPatients;
@@ -186,3 +239,8 @@ window.createPrescription        = createPrescription;
 window.listPrescriptions         = listPrescriptions;
 window.updatePrescriptionStatus  = updatePrescriptionStatus;
 window.normalisePatient          = normalisePatient;
+window.updatePatient             = updatePatient;
+window.updateAppointment         = updateAppointment;
+window.listUsers                 = listUsers;
+window.createClinician           = createClinician;
+window.updateUserStatus          = updateUserStatus;
