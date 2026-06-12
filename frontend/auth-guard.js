@@ -65,7 +65,7 @@ const API_BASE = 'http://3.93.195.129:3000';
   // Use readyState check instead of DOMContentLoaded
   function attachUIHandlers() {
     const hospitalEl = document.getElementById('hospitalName');
-    if (hospitalEl) hospitalEl.textContent = 'ISTH Irrua';
+    if (hospitalEl) hospitalEl.textContent = '';
 
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     const userNameEl = document.getElementById('userName');
