@@ -6,6 +6,7 @@ const API_BASE = 'https://poker-imposing-jogging.ngrok-free.dev';
   try {
     const res = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: 'POST',
+      headers: { 'ngrok-skip-browser-warning': 'true' },
       credentials: 'include',
     });
     if (res.ok) {
@@ -50,7 +51,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   try {
     const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
