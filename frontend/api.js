@@ -167,12 +167,13 @@ async function updatePrescriptionStatus(id, active) {
 function normalisePatient(p) {
   return {
     ...p,
-    name:      `${p.givenName} ${p.familyName}`,
-    disease:   p.primaryDiagnosis  || '—',
-    language:  p.preferredLanguage || 'English',
-    adherence: p.adherence         ?? 0,
-    lastReminder:    p.lastReminder    || null,
-    nextAppointment: p.nextAppointment || null,
+    name:            `${p.givenName} ${p.familyName}`,
+    disease:         p.primaryDiagnosis        || '—',
+    language:        p.preferredLanguage       || 'English',
+    adherence:       p.adherence               ?? 0,
+    lastReminder:    p.lastReminder            || null,
+    nextAppointment: p.nextAppointmentDate      || null,
+    appointmentLocation: p.nextAppointmentLocation || null,
   };
 }
 
