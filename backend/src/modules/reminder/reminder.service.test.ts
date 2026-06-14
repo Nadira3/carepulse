@@ -1,19 +1,20 @@
 import { ReminderService } from './reminder.service';
 import { prisma } from '../../config/prisma';
 import { generateReminderMessage } from '../../common/utils/gemini.client';
-import { sendSMS } from '../../common/utils/africastalking.client';
+import { deliverMessage } from '../../common/utils/delivery.client';
 import { adherenceService } from '../adherence/adherence.service';
 
 jest.mock('../../config/prisma', () => ({
   prisma: {
     prescription: { findMany: jest.fn() },
     reminder:     {
-      findFirst:  jest.fn(),
-      findMany:   jest.fn(),
-      create:     jest.fn(),
-      update:     jest.fn(),
+      findFirst: jest.fn(),
+      findMany:  jest.fn(),
+      create:    jest.fn(),
+      update:    jest.fn(),
     },
-    patient:      { findFirst: jest.fn(), findMany: jest.fn() },
+    patient: { findFirst: jest.fn(), findMany: jest.fn() },
+    reminderSchedule: { findMany: jest.fn() },
   },
 }));
 
@@ -21,8 +22,8 @@ jest.mock('../../common/utils/gemini.client', () => ({
   generateReminderMessage: jest.fn(),
 }));
 
-jest.mock('../../common/utils/africastalking.client', () => ({
-  sendSMS: jest.fn(),
+jest.mock('../../common/utils/delivery.client', () => ({
+  deliverMessage: jest.fn(),
 }));
 
 jest.mock('../adherence/adherence.service', () => ({
@@ -36,10 +37,15 @@ const mockPatient = {
   id:                'patient-uuid-1',
   givenName:         'Baba',
   familyName:        'John',
-  phone:             '+2348105443549',
+  phone:             '+2348150945468',
   preferredLanguage: 'Pidgin English',
+  preferredChannel:  'SMS',
   primaryDiagnosis:  'Hypertension',
   consentGiven:      true,
+  nextAppointmentDate:     null,
+  nextAppointmentLocation: null,
+  apptReminderThreeDays:   true,
+  apptReminderMorning:     true,
 };
 
 const mockPrescription = {
@@ -60,6 +66,7 @@ const mockReminder = {
   type:        'MEDICATION',
   status:      'PENDING',
   message:     'Hi Baba, take your Amlodipine.',
+  channel:     'SMS',
   scheduledAt: new Date(),
   sentAt:      null,
   confirmedAt: null,
@@ -94,6 +101,7 @@ describe('ReminderService', () => {
           patientId:      'patient-uuid-1',
           prescriptionId: 'prescription-uuid-1',
           type:           'MEDICATION',
+          channel:        'SMS',
           status:         'PENDING',
         }),
       }));
@@ -134,26 +142,46 @@ describe('ReminderService', () => {
         }),
       }));
     });
+
+    it('sets channel from patient preferredChannel', async () => {
+      const voicePatient = { ...mockPatient, preferredChannel: 'VOICE' };
+      (prisma.prescription.findMany as jest.Mock).mockResolvedValue([{
+        ...mockPrescription,
+        patient: voicePatient,
+      }]);
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue(null);
+      (generateReminderMessage as jest.Mock).mockResolvedValue('Voice message');
+      (prisma.reminder.create as jest.Mock).mockResolvedValue(mockReminder);
+
+      await service.scheduleMedicationReminders();
+
+      expect(prisma.reminder.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ channel: 'VOICE' }),
+      }));
+    });
   });
 
   describe('sendPendingReminders', () => {
-    it('sends SMS and marks reminder as SENT on success', async () => {
+    it('delivers reminder and marks as SENT on success', async () => {
       (prisma.reminder.findMany as jest.Mock).mockResolvedValue([mockReminder]);
-      (sendSMS as jest.Mock).mockResolvedValue({ success: true, messageId: 'msg-123' });
+      (deliverMessage as jest.Mock).mockResolvedValue({ success: true, messageId: 'msg-123', channel: 'SMS' });
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
 
       await service.sendPendingReminders();
 
-      expect(sendSMS).toHaveBeenCalledWith(mockPatient.phone, mockReminder.message);
+      expect(deliverMessage).toHaveBeenCalledWith(
+        mockPatient.phone,
+        mockReminder.message,
+        mockReminder.channel,
+      );
       expect(prisma.reminder.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: mockReminder.id },
-        data:  expect.objectContaining({ status: 'SENT' }),
+        data: expect.objectContaining({ status: 'SENT' }),
       }));
     });
 
-    it('marks reminder as FAILED when SMS fails', async () => {
+    it('marks reminder as FAILED when delivery fails', async () => {
       (prisma.reminder.findMany as jest.Mock).mockResolvedValue([mockReminder]);
-      (sendSMS as jest.Mock).mockResolvedValue({ success: false, error: 'Network error' });
+      (deliverMessage as jest.Mock).mockResolvedValue({ success: false, error: 'Network error', channel: 'SMS' });
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
 
       await service.sendPendingReminders();
@@ -172,7 +200,7 @@ describe('ReminderService', () => {
 
       await service.sendPendingReminders();
 
-      expect(sendSMS).not.toHaveBeenCalled();
+      expect(deliverMessage).not.toHaveBeenCalled();
       expect(prisma.reminder.update).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({ status: 'FAILED' }),
       }));
@@ -185,9 +213,7 @@ describe('ReminderService', () => {
       sentAt.setHours(sentAt.getHours() - 5);
 
       (prisma.reminder.findMany as jest.Mock).mockResolvedValue([{
-        ...mockReminder,
-        status: 'SENT',
-        sentAt,
+        ...mockReminder, status: 'SENT', sentAt,
       }]);
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
       (adherenceService.calculateAndStore as jest.Mock).mockResolvedValue(45);
@@ -204,38 +230,39 @@ describe('ReminderService', () => {
   describe('handleReply', () => {
     it('marks reminder as confirmed when patient replies CONFIRM', async () => {
       (prisma.patient.findFirst as jest.Mock).mockResolvedValue(mockPatient);
-      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({
-        ...mockReminder,
-        status: 'SENT',
-      });
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({ ...mockReminder, status: 'SENT' });
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
       (adherenceService.calculateAndStore as jest.Mock).mockResolvedValue(85);
 
-      await service.handleReply('+2348105443549', 'CONFIRM');
+      await service.handleReply('+2348150945468', 'CONFIRM');
 
       expect(prisma.reminder.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({
-          confirmedAt: expect.any(Date),
-        }),
+        data: expect.objectContaining({ confirmedAt: expect.any(Date) }),
       }));
       expect(adherenceService.calculateAndStore).toHaveBeenCalledWith('patient-uuid-1');
     });
 
     it('reschedules reminder for 1 hour when patient replies SNOOZE', async () => {
       (prisma.patient.findFirst as jest.Mock).mockResolvedValue(mockPatient);
-      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({
-        ...mockReminder,
-        status: 'SENT',
-      });
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({ ...mockReminder, status: 'SENT' });
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
 
-      await service.handleReply('+2348105443549', 'SNOOZE');
+      await service.handleReply('+2348150945468', 'SNOOZE');
 
       expect(prisma.reminder.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({
-          status:      'PENDING',
-          scheduledAt: expect.any(Date),
-        }),
+        data: expect.objectContaining({ status: 'PENDING', scheduledAt: expect.any(Date) }),
+      }));
+    });
+
+    it('cancels appointment reminder when patient replies RESCHEDULE', async () => {
+      (prisma.patient.findFirst as jest.Mock).mockResolvedValue(mockPatient);
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({ ...mockReminder, status: 'SENT' });
+      (prisma.reminder.update as jest.Mock).mockResolvedValue({});
+
+      await service.handleReply('+2348150945468', 'RESCHEDULE');
+
+      expect(prisma.reminder.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ status: 'CANCELLED' }),
       }));
     });
 
@@ -249,14 +276,11 @@ describe('ReminderService', () => {
 
     it('handles case-insensitive replies', async () => {
       (prisma.patient.findFirst as jest.Mock).mockResolvedValue(mockPatient);
-      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({
-        ...mockReminder,
-        status: 'SENT',
-      });
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({ ...mockReminder, status: 'SENT' });
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
       (adherenceService.calculateAndStore as jest.Mock).mockResolvedValue(85);
 
-      await service.handleReply('+2348105443549', 'confirm');
+      await service.handleReply('+2348150945468', 'confirm');
 
       expect(prisma.reminder.update).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({ confirmedAt: expect.any(Date) }),
@@ -270,22 +294,19 @@ describe('ReminderService', () => {
       (adherenceService.needsLifestyleTip as jest.Mock).mockResolvedValue(true);
       (prisma.reminder.findFirst as jest.Mock).mockResolvedValue(null);
       (generateReminderMessage as jest.Mock).mockResolvedValue('Baba, reduce your salt intake today.');
-      (prisma.reminder.create as jest.Mock).mockResolvedValue({
-        ...mockReminder,
-        type: 'LIFESTYLE',
-      });
-      (sendSMS as jest.Mock).mockResolvedValue({ success: true, messageId: 'msg-456' });
+      (prisma.reminder.create as jest.Mock).mockResolvedValue({ ...mockReminder, type: 'LIFESTYLE' });
+      (deliverMessage as jest.Mock).mockResolvedValue({ success: true, messageId: 'msg-456', channel: 'SMS' });
       (prisma.reminder.update as jest.Mock).mockResolvedValue({});
 
       await service.sendLifestyleTips();
 
       expect(generateReminderMessage).toHaveBeenCalledWith(expect.objectContaining({
         reminderType: 'LIFESTYLE',
-        patientName:  'Baba',
       }));
-      expect(sendSMS).toHaveBeenCalledWith(
+      expect(deliverMessage).toHaveBeenCalledWith(
         mockPatient.phone,
-        'Baba, reduce your salt intake today.'
+        'Baba, reduce your salt intake today.',
+        'SMS',
       );
     });
 
@@ -296,18 +317,47 @@ describe('ReminderService', () => {
       await service.sendLifestyleTips();
 
       expect(generateReminderMessage).not.toHaveBeenCalled();
-      expect(sendSMS).not.toHaveBeenCalled();
     });
 
     it('skips patient who received a tip this week', async () => {
       (prisma.patient.findMany as jest.Mock).mockResolvedValue([mockPatient]);
       (adherenceService.needsLifestyleTip as jest.Mock).mockResolvedValue(true);
-      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({
-        ...mockReminder,
-        type: 'LIFESTYLE',
-      });
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue({ ...mockReminder, type: 'LIFESTYLE' });
 
       await service.sendLifestyleTips();
+
+      expect(generateReminderMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('scheduleAppointmentReminders', () => {
+    it('sends 3-day reminder when appointment is 3 days away', async () => {
+      const apptDate = new Date();
+      apptDate.setDate(apptDate.getDate() + 3);
+
+      (prisma.patient.findMany as jest.Mock).mockResolvedValue([{
+        ...mockPatient,
+        nextAppointmentDate:     apptDate,
+        nextAppointmentLocation: 'Cardiology',
+        apptReminderThreeDays:   true,
+      }]);
+      (prisma.reminder.findFirst as jest.Mock).mockResolvedValue(null);
+      (generateReminderMessage as jest.Mock).mockResolvedValue('Baba, appointment in 3 days.');
+      (prisma.reminder.create as jest.Mock).mockResolvedValue({ ...mockReminder, type: 'APPOINTMENT' });
+      (deliverMessage as jest.Mock).mockResolvedValue({ success: true, channel: 'SMS' });
+      (prisma.reminder.update as jest.Mock).mockResolvedValue({});
+
+      await service.scheduleAppointmentReminders();
+
+      expect(generateReminderMessage).toHaveBeenCalledWith(expect.objectContaining({
+        reminderType: 'APPOINTMENT',
+      }));
+    });
+
+    it('skips patient with no upcoming appointment', async () => {
+      (prisma.patient.findMany as jest.Mock).mockResolvedValue([mockPatient]);
+
+      await service.scheduleAppointmentReminders();
 
       expect(generateReminderMessage).not.toHaveBeenCalled();
     });

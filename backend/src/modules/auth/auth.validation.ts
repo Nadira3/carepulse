@@ -19,3 +19,9 @@ export const refreshTokenSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const updateUserStatusSchema = z.object({
+  isActive: z.boolean(),
+});
+
+export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;

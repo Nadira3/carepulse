@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CLINICIAN
+}
+
+enum ReminderType {
+  MEDICATION
+  APPOINTMENT
+  LIFESTYLE
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum Channel {
+  SMS
+  PUSH
+  VOICE
+  EMAIL
+}
+
+enum Gender {
+  M
+  F
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          Role      @default(CLINICIAN)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Patient {
+  id                 String    @id @default(uuid())
+  openmrsUuid        String    @unique
+  identifier         String    @unique
+  givenName          String
+  familyName         String
+  gender             Gender
+  birthdate          DateTime?
+  age                Int?
+  phone              String?
+  occupation         String?
+  preferredLanguage  String    @default("English")
+  primaryDiagnosis   String?
+  secondaryCondition String?
+  clinicianName      String?
+  ward               String?
+  enrolmentDate      DateTime?
+  consentGiven       Boolean   @default(false)
+  preferredChannel           Channel   @default(SMS)
+  nextAppointmentDate        DateTime?
+  nextAppointmentLocation    String?
+  apptReminderThreeDays      Boolean   @default(true)
+  apptReminderMorning        Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  reminders          Reminder[]
+  prescriptions      Prescription[]
+  encounters         Encounter[]
+  adherenceRecords   AdherenceRecord[]
+  reminderSchedules  ReminderSchedule[]
+
+  @@map("patients")
+}
+
+model Prescription {
+  id               String     @id @default(uuid())
+  openmrsOrderUuid String?    @unique
+  patientId        String
+  encounterId      String
+  drugName         String
+  dose             String
+  frequency        String
+  duration         String
+  instructions     String?
+  startDate        DateTime
+  endDate          DateTime?
+  active           Boolean    @default(true)
+  frequencyHours   Int       @default(24)
+  doseTimes        String[]  @default([])
+  syncStatus       SyncStatus @default(PENDING)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  patient     Patient    @relation(fields: [patientId], references: [id])
+  encounter   Encounter  @relation(fields: [encounterId], references: [id])
+  reminders   Reminder[]
+  reminderSchedules ReminderSchedule[]
+
+  @@map("prescriptions")
+}
+
+model Reminder {
+  id             String         @id @default(uuid())
+  patientId      String
+  prescriptionId String?
+  type           ReminderType
+  scheduledAt    DateTime
+  sentAt         DateTime?
+  status         ReminderStatus @default(PENDING)
+  message        String
+  channel        Channel        @default(SMS)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  confirmedAt  	 DateTime?
+  failedAt       DateTime?
+  respondedAt    DateTime?
+
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
+
+  @@map("reminders")
+}
+
+enum EncounterType {
+  OUTPATIENT
+  INPATIENT
+  EMERGENCY
+  FOLLOW_UP
+  INITIAL
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+}
+
+model Encounter {
+  id             String        @id @default(uuid())
+  openmrsUuid    String?       @unique
+  patientId      String
+  type           EncounterType
+  encounterDate  DateTime
+  clinicianName  String
+  location       String?
+  notes          String?
+  syncStatus     SyncStatus    @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  patient        Patient       @relation(fields: [patientId], references: [id])
+  prescriptions  Prescription[]
+  observations   Observation[]
+
+  @@map("encounters")
+}
+
+model Observation {
+  id            String     @id @default(uuid())
+  encounterId   String
+  conceptUuid   String
+  conceptName   String
+  value         String
+  unit          String?
+  createdAt     DateTime   @default(now())
+
+  encounter     Encounter  @relation(fields: [encounterId], references: [id])
+
+  @@map("observations")
+}
+
+model AdherenceRecord {
+  id                   String   @id @default(uuid())
+  patientId            String
+  periodStart          DateTime
+  periodEnd            DateTime
+  medicationScheduled  Int      @default(0)
+  medicationConfirmed  Int      @default(0)
+  appointmentScheduled Int      @default(0)
+  appointmentAttended  Int      @default(0)
+  adherenceScore       Float    @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@map("adherence_records")
+}
+
+model ReminderSchedule {
+  id             String    @id @default(uuid())
+  prescriptionId String
+  patientId      String
+  doseTime       String
+  frequencyHours Int
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id])
+  patient        Patient      @relation(fields: [patientId], references: [id])
+
+  @@map("reminder_schedules")
+}

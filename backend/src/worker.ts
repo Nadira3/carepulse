@@ -7,9 +7,9 @@ import { reminderService } from './modules/reminder/reminder.service';
 console.log('[Worker] CarePulse reminder worker started');
 console.log('[Worker] Environment:', process.env.NODE_ENV);
 
-// Every 15 minutes — check for due reminders and send pending ones
+// Every 15 minutes — check due reminders and send pending
 cron.schedule('*/15 * * * *', async () => {
-  console.log('[Worker] Checking due reminder schedules...');
+  console.log('[Worker] Reminder cycle starting...');
   try {
     await reminderService.scheduleDueReminders();
     await reminderService.sendPendingReminders();
@@ -20,11 +20,20 @@ cron.schedule('*/15 * * * *', async () => {
 
 // Every hour — mark timed-out reminders as missed
 cron.schedule('0 * * * *', async () => {
-  console.log('[Worker] Checking timed-out reminders...');
   try {
     await reminderService.markTimedOutReminders();
   } catch (err) {
     console.error('[Worker] markTimedOutReminders failed:', err);
+  }
+}, { timezone: 'Africa/Lagos' });
+
+// Every day at 08:00 — check for appointment reminders (3 days before + morning of)
+cron.schedule('0 8 * * *', async () => {
+  console.log('[Worker] Checking appointment reminders...');
+  try {
+    await reminderService.scheduleAppointmentReminders();
+  } catch (err) {
+    console.error('[Worker] scheduleAppointmentReminders failed:', err);
   }
 }, { timezone: 'Africa/Lagos' });
 

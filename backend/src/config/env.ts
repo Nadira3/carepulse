@@ -30,9 +30,10 @@ export const config = {
     API_KEY:   process.env.AT_API_KEY   ?? '',
     USERNAME:  process.env.AT_USERNAME  ?? 'sandbox',
     SENDER_ID: process.env.AT_SENDER_ID ?? '',
+    CALLER_ID: process.env.AT_CALLER_ID ?? '', // virtual number for voice calls
   },
   REMINDER: {
-    CONFIRM_TIMEOUT_HOURS:          parseInt(process.env.REMINDER_CONFIRM_TIMEOUT_HOURS          ?? '4',  10),
-    LIFESTYLE_ADHERENCE_THRESHOLD:  parseInt(process.env.REMINDER_LIFESTYLE_ADHERENCE_THRESHOLD  ?? '50', 10),
+    CONFIRM_TIMEOUT_HOURS:         parseInt(process.env.REMINDER_CONFIRM_TIMEOUT_HOURS         ?? '4',  10),
+    LIFESTYLE_ADHERENCE_THRESHOLD: parseInt(process.env.REMINDER_LIFESTYLE_ADHERENCE_THRESHOLD ?? '50', 10),
   },
 } as const;

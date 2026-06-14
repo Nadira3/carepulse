@@ -190,7 +190,7 @@ describe('Patient Routes', () => {
 
   describe('GET /api/patients/:uuid', () => {
     it('should return 200 for valid UUID', async () => {
-      (patientService.getPatientByUuid as jest.Mock).mockResolvedValueOnce(mockOmrsPatient);
+      (prisma.patient.findUnique as jest.Mock).mockResolvedValueOnce(mockDbPatient);
       const res = await request(app)
         .get(`/api/patients/${VALID_UUID}`)
         .set('Authorization', MOCK_TOKEN);

@@ -4,7 +4,6 @@ import { prisma } from '../../config/prisma';
 import { atWebhookSchema, listRemindersSchema } from './reminder.validation';
 
 export class ReminderController {
-  // AT webhook — receives SMS replies from patients
   async handleWebhook(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const body = atWebhookSchema.parse(req.body);
@@ -45,6 +44,16 @@ export class ReminderController {
         page,
         totalPages: Math.ceil(total / limit),
       });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async trigger(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await reminderService.scheduleMedicationReminders();
+      await reminderService.sendPendingReminders();
+      res.status(200).json({ message: 'Reminders scheduled and sent successfully' });
     } catch (err) {
       next(err);
     }

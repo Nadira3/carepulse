@@ -1,0 +1,157 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Admin123
+      MYSQL_DATABASE: openmrs
+      MYSQL_USER: openmrs
+      MYSQL_PASSWORD: Admin123
+    volumes:
+      - openmrs-db:/var/lib/mysql
+    networks:
+      - openmrs-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pAdmin123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: openmrs/openmrs-reference-application-3-backend:nightly
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      OMRS_CONFIG_MODULE_WEB_ADMIN: "true"
+      OMRS_CONFIG_AUTO_UPDATE_DATABASE: "true"
+      OMRS_CONFIG_CREATE_TABLES_ON_STARTUP: "true"
+      OMRS_CONFIG_CONNECTION_SERVER: db
+      OMRS_CONFIG_CONNECTION_DATABASE: openmrs
+      OMRS_CONFIG_CONNECTION_USERNAME: openmrs
+      OMRS_CONFIG_CONNECTION_PASSWORD: Admin123
+    volumes:
+      - openmrs-data:/openmrs/data
+    ports:
+      - "8080:8080"
+    networks:
+      - openmrs-network
+
+  frontend:
+    image: openmrs/openmrs-reference-application-3-frontend:nightly
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      SPA_PATH: /openmrs/spa
+      API_URL: /openmrs
+    ports:
+      - "80:80"
+    networks:
+      - openmrs-network
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: emr_service
+      POSTGRES_USER: emr_user
+      POSTGRES_PASSWORD: EmrPass123
+    volumes:
+      - emr-postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - openmrs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emr_user -d emr_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  emr-service:
+    build:
+      context: /home/ubuntu/emr-service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://emr_user:EmrPass123@postgres:5432/emr_service
+      OPENMRS_BASE_URL: http://backend:8080/openmrs/ws/rest/v1
+      OPENMRS_USERNAME: admin
+      OPENMRS_PASSWORD: Admin123
+      OPENMRS_LOCATION_UUID: 1ce1b7d4-c865-4178-82b0-5932e51503d6
+      OPENMRS_IDENTIFIER_TYPE_UUID: 8d79403a-c2cc-11de-8d13-0010c6dffd0f
+      OPENMRS_ENCOUNTER_TYPE_UUID: dd528487-82a5-4082-9c72-ed246bd49591
+      OPENMRS_PROVIDER_UUID: e30aed4d-7eb3-46d5-8cc9-7f139e3d3c08
+      OPENMRS_ENCOUNTER_ROLE_UUID: 240b26f9-dd88-4172-823d-4a8bfeb7841f
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      AT_API_KEY: ${AT_API_KEY}
+      AT_USERNAME: ${AT_USERNAME}
+      AT_SENDER_ID: ${AT_SENDER_ID}
+      AT_CALLER_ID: ${AT_CALLER_ID}
+      REMINDER_CONFIRM_TIMEOUT_HOURS: 4
+      REMINDER_LIFESTYLE_ADHERENCE_THRESHOLD: 50
+      RATE_LIMIT_LOGIN_MAX: 100
+      RATE_LIMIT_GENERAL_MAX: 1000
+      ALLOWED_ORIGINS: http://localhost:8000,http://3.93.195.129:8000,http://3.93.195.129,https://carepulsev0.netlify.app,https://poker-imposing-jogging.ngrok-free.dev,https://carepulseai.paitanun35.workers.dev
+    ports:
+      - "3000:3000"
+    networks:
+      - openmrs-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  emr-worker:
+    build:
+      context: /home/ubuntu/emr-service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      emr-service:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://emr_user:EmrPass123@postgres:5432/emr_service
+      OPENMRS_BASE_URL: http://backend:8080/openmrs/ws/rest/v1
+      OPENMRS_USERNAME: admin
+      OPENMRS_PASSWORD: Admin123
+      OPENMRS_LOCATION_UUID: 1ce1b7d4-c865-4178-82b0-5932e51503d6
+      OPENMRS_IDENTIFIER_TYPE_UUID: 8d79403a-c2cc-11de-8d13-0010c6dffd0f
+      OPENMRS_ENCOUNTER_TYPE_UUID: dd528487-82a5-4082-9c72-ed246bd49591
+      OPENMRS_PROVIDER_UUID: e30aed4d-7eb3-46d5-8cc9-7f139e3d3c08
+      OPENMRS_ENCOUNTER_ROLE_UUID: 240b26f9-dd88-4172-823d-4a8bfeb7841f
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      AT_API_KEY: ${AT_API_KEY}
+      AT_USERNAME: ${AT_USERNAME}
+      AT_SENDER_ID: ${AT_SENDER_ID}
+      AT_CALLER_ID: ${AT_CALLER_ID}
+      REMINDER_CONFIRM_TIMEOUT_HOURS: 4
+      REMINDER_LIFESTYLE_ADHERENCE_THRESHOLD: 50
+    command: ["node", "dist/worker.js"]
+    networks:
+      - openmrs-network
+
+volumes:
+  openmrs-db:
+  openmrs-data:
+  emr-postgres:
+
+networks:
+  openmrs-network:
+    driver: bridge

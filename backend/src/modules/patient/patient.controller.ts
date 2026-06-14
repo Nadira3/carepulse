@@ -4,9 +4,12 @@ import { prisma } from '../../config/prisma';
 import {
   searchQuerySchema,
   getPatientByUuidSchema,
+  getPatientByIdSchema,
   createPatientSchema,
+  updatePatientSchema,
+  updateAppointmentSchema,
 } from './patient.validation';
-import { ConflictError } from '../../common/errors/app-errors';
+import { ConflictError, NotFoundError } from '../../common/errors/app-errors';
 
 export class PatientController {
   async search(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -22,7 +25,26 @@ export class PatientController {
   async getByUuid(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { uuid } = getPatientByUuidSchema.parse(req.params);
-      const patient = await patientService.getPatientByUuid(uuid);
+      const patient  = await patientService.getPatientByUuid(uuid);
+      res.status(200).json(patient);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = getPatientByIdSchema.parse(req.params);
+      const patient = await prisma.patient.findUnique({
+        where:   { id },
+        include: {
+          prescriptions: {
+            where:   { active: true },
+            include: { reminderSchedules: true },
+          },
+        },
+      });
+      if (!patient) throw new NotFoundError('Patient', id);
       res.status(200).json(patient);
     } catch (err) {
       next(err);
@@ -31,11 +53,11 @@ export class PatientController {
 
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const page      = parseInt(req.query.page  as string) || 1;
-      const limit     = parseInt(req.query.limit as string) || 10;
-      const skip      = (page - 1) * limit;
-      const search    = (req.query.search    as string | undefined)?.trim();
-      const disease   = (req.query.disease   as string | undefined)?.trim();
+      const page    = parseInt(req.query.page  as string) || 1;
+      const limit   = parseInt(req.query.limit as string) || 10;
+      const skip    = (page - 1) * limit;
+      const search  = (req.query.search  as string | undefined)?.trim();
+      const disease = (req.query.disease as string | undefined)?.trim();
 
       const where: any = {};
 
@@ -52,12 +74,7 @@ export class PatientController {
       }
 
       const [patients, total] = await Promise.all([
-        prisma.patient.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-        }),
+        prisma.patient.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' } }),
         prisma.patient.count({ where }),
       ]);
 
@@ -98,9 +115,10 @@ export class PatientController {
           amber,
           red,
           untracked,
+          // Rate only counts tracked patients — untracked excluded from %
           rate: records.length
             ? Math.round((green / records.length) * 100)
-            : 0,
+            : null,
         },
       });
     } catch (err) {
@@ -142,6 +160,7 @@ export class PatientController {
           phone:              input.phone,
           occupation:         input.occupation,
           preferredLanguage:  input.preferredLanguage,
+          preferredChannel:   input.preferredChannel,
           primaryDiagnosis:   input.primaryDiagnosis,
           secondaryCondition: input.secondaryCondition,
           clinicianName:      input.clinicianName,
@@ -152,6 +171,57 @@ export class PatientController {
       });
 
       res.status(201).json(saved);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id }  = getPatientByIdSchema.parse(req.params);
+      const input   = updatePatientSchema.parse(req.body);
+
+      const existing = await prisma.patient.findUnique({ where: { id } });
+      if (!existing) throw new NotFoundError('Patient', id);
+
+      const updated = await prisma.patient.update({
+        where: { id },
+        data:  {
+          ...(input.primaryDiagnosis   ? { primaryDiagnosis:   input.primaryDiagnosis }   : {}),
+          ...(input.secondaryCondition !== undefined ? { secondaryCondition: input.secondaryCondition } : {}),
+          ...(input.clinicianName      ? { clinicianName:      input.clinicianName }      : {}),
+          ...(input.ward               ? { ward:               input.ward }               : {}),
+          ...(input.phone              ? { phone:              input.phone }              : {}),
+          ...(input.preferredLanguage  ? { preferredLanguage:  input.preferredLanguage }  : {}),
+          ...(input.preferredChannel   ? { preferredChannel:   input.preferredChannel }   : {}),
+        },
+      });
+
+      res.status(200).json(updated);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateAppointment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id }  = getPatientByIdSchema.parse(req.params);
+      const input   = updateAppointmentSchema.parse(req.body);
+
+      const existing = await prisma.patient.findUnique({ where: { id } });
+      if (!existing) throw new NotFoundError('Patient', id);
+
+      const updated = await prisma.patient.update({
+        where: { id },
+        data:  {
+          nextAppointmentDate:     new Date(input.nextAppointmentDate),
+          nextAppointmentLocation: input.nextAppointmentLocation,
+          apptReminderThreeDays:   input.apptReminderThreeDays,
+          apptReminderMorning:     input.apptReminderMorning,
+        },
+      });
+
+      res.status(200).json(updated);
     } catch (err) {
       next(err);
     }
