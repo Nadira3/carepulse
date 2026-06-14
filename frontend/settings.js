@@ -1,262 +1,59 @@
-<<<<<<< HEAD
-// settings.js — Screen 8: Admin Settings
-// Configuration panel for hospital settings, SMS, reminders, and AI
-
-// ── Default Settings ────────────────────────────────────────────────────────
-const defaultSettings = {
-  hospital: {
-    name: 'ISTH Irrua',
-    address: '',
-    adminName: '',
-    contactEmail: ''
-  },
-  sms: {
-    senderId: 'CarePulse',
-    defaultLanguage: 'English',
-    smsProvider: 'Termii'
-  },
-  reminders: {
-    medicationReminders: true,
-    appointmentReminders: true,
-    healthTips: true,
-    appointmentLeadTime: '3'
-  },
-  gemini: {
-    messageStyle: 'Friendly',
-    includePatientName: true,
-    includeMedicationName: true
-  }
-};
-
-// ── Initialize Settings Page ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  loadSettingsFromStorage();
-  attachToggleListeners();
-});
-
-// ── Load Settings from Local Storage ────────────────────────────────────────
-function loadSettingsFromStorage() {
-  const stored = localStorage.getItem('carepulseSettings');
-  const settings = stored ? JSON.parse(stored) : defaultSettings;
-
-  // Hospital Profile
-  document.getElementById('hospitalName').value = settings.hospital.name;
-  document.getElementById('hospitalAddress').value = settings.hospital.address;
-  document.getElementById('adminName').value = settings.hospital.adminName;
-  document.getElementById('contactEmail').value = settings.hospital.contactEmail;
-
-  // SMS Configuration
-  document.getElementById('smsSenderId').value = settings.sms.senderId;
-  document.getElementById('defaultLanguage').value = settings.sms.defaultLanguage;
-  document.getElementById('smsProvider').value = settings.sms.smsProvider;
-
-  // Reminder Defaults
-  document.getElementById('medicationToggle').checked = settings.reminders.medicationReminders;
-  document.getElementById('appointmentToggle').checked = settings.reminders.appointmentReminders;
-  document.getElementById('healthTipToggle').checked = settings.reminders.healthTips;
-  document.getElementById('appointmentLeadTime').value = settings.reminders.appointmentLeadTime;
-
-  // Gemini Settings
-  document.getElementById('messageStyle').value = settings.gemini.messageStyle;
-  document.getElementById('includePatientName').checked = settings.gemini.includePatientName;
-  document.getElementById('includeMedicationName').checked = settings.gemini.includeMedicationName;
-}
-
-// ── Save Hospital Settings ──────────────────────────────────────────────────
-function saveHospitalSettings() {
-  const settings = getStoredSettings();
-  
-  settings.hospital = {
-    name: document.getElementById('hospitalName').value,
-    address: document.getElementById('hospitalAddress').value,
-    adminName: document.getElementById('adminName').value,
-    contactEmail: document.getElementById('contactEmail').value
-  };
-
-  if (!validateEmail(settings.hospital.contactEmail) && settings.hospital.contactEmail) {
-    showToast('Please enter a valid email address', 'error');
-    return;
-  }
-
-  saveSettings(settings);
-  showToast('Hospital settings saved successfully', 'success');
-}
-
-// ── Save SMS Settings ───────────────────────────────────────────────────────
-function saveSmsSettings() {
-  const settings = getStoredSettings();
-  const senderId = document.getElementById('smsSenderId').value.trim();
-
-  if (!senderId) {
-    showToast('SMS Sender ID is required', 'error');
-    return;
-  }
-
-  if (senderId.length > 11) {
-    showToast('SMS Sender ID must be 11 characters or less', 'error');
-    return;
-  }
-
-  settings.sms = {
-    senderId: senderId,
-    defaultLanguage: document.getElementById('defaultLanguage').value,
-    smsProvider: 'Termii'
-  };
-
-  saveSettings(settings);
-  showToast('SMS settings saved successfully', 'success');
-}
-
-// ── Save Reminder Settings ──────────────────────────────────────────────────
-function saveReminderSettings() {
-  const settings = getStoredSettings();
-
-  settings.reminders = {
-    medicationReminders: document.getElementById('medicationToggle').checked,
-    appointmentReminders: document.getElementById('appointmentToggle').checked,
-    healthTips: document.getElementById('healthTipToggle').checked,
-    appointmentLeadTime: document.getElementById('appointmentLeadTime').value
-  };
-
-  saveSettings(settings);
-  showToast('Reminder settings saved successfully', 'success');
-}
-
-// ── Save Gemini Settings ────────────────────────────────────────────────────
-function saveGeminiSettings() {
-  const settings = getStoredSettings();
-
-  settings.gemini = {
-    messageStyle: document.getElementById('messageStyle').value,
-    includePatientName: document.getElementById('includePatientName').checked,
-    includeMedicationName: document.getElementById('includeMedicationName').checked
-  };
-
-  saveSettings(settings);
-  showToast('AI settings saved successfully', 'success');
-}
-
-// ── Get Settings from Storage ───────────────────────────────────────────────
-function getStoredSettings() {
-  const stored = localStorage.getItem('carepulseSettings');
-  return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultSettings));
-}
-
-// ── Save Settings to Storage ────────────────────────────────────────────────
-function saveSettings(settings) {
-  localStorage.setItem('carepulseSettings', JSON.stringify(settings));
-}
-
-// ── Attach Toggle Listeners ─────────────────────────────────────────────────
-function attachToggleListeners() {
-  const toggles = document.querySelectorAll('.toggle-switch input');
-  toggles.forEach(toggle => {
-    toggle.addEventListener('change', function() {
-      // Visual feedback for toggle change
-      this.parentElement.parentElement.classList.add('toggled');
-    });
-  });
-}
-
-// ── Reset Confirmation Modal ────────────────────────────────────────────────
-function showResetConfirmation() {
-  const modal = document.getElementById('confirmationModal');
-  modal.classList.remove('hidden');
-}
-
-function closeModal() {
-  const modal = document.getElementById('confirmationModal');
-  modal.classList.add('hidden');
-}
-
-function confirmReset() {
-  // Clear settings from localStorage
-  localStorage.removeItem('carepulseSettings');
-  
-  // Reload the page to restore defaults
-  closeModal();
-  showToast('All settings have been reset to defaults', 'success');
-  
-  setTimeout(() => {
-    location.reload();
-  }, 1500);
-}
-
-// ── Modal Click Outside Handler ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('confirmationModal');
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
-      }
-    });
-  }
-});
-
-// ── Helper Functions ────────────────────────────────────────────────────────
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#008B8B'};
-    color: white;
-    padding: 12px 20px;
-    border-radius: 4px;
-    font-size: 14px;
-    z-index: 9999;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    animation: slideIn 0.3s ease;
-  `;
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-=======
 // settings.js — CarePulse Settings
+// Profile + Clinician Management (API) + Hospital/SMS/Reminder/AI config (localStorage)
+
 let currentUser = null;
 
+// ── Default Settings ──────────────────────────────────────────────────────
+const defaultSettings = {
+  hospital:  { name: 'ISTH Irrua', address: '', adminName: '', contactEmail: '' },
+  sms:       { senderId: 'CarePulse', defaultLanguage: 'English' },
+  reminders: { medicationReminders: true, appointmentReminders: true, healthTips: true, appointmentLeadTime: '3' },
+  gemini:    { messageStyle: 'Friendly', includePatientName: true, includeMedicationName: true },
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
+  // Load user profile from sessionStorage
   currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
 
-  document.getElementById('myName').value  = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
-  document.getElementById('myEmail').value = currentUser.email || '';
-  document.getElementById('myRole').value  = currentUser.role  || '';
+  const myName = document.getElementById('myName');
+  const myEmail = document.getElementById('myEmail');
+  const myRole  = document.getElementById('myRole');
+
+  if (myName)  myName.value  = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
+  if (myEmail) myEmail.value = currentUser.email || '';
+  if (myRole)  myRole.value  = currentUser.role  || '';
 
   // Show admin section only for admins
   if (currentUser.role === 'ADMIN') {
-    document.getElementById('adminSection').style.display = 'block';
-    await loadUsers();
+    const adminSection = document.getElementById('adminSection');
+    if (adminSection) {
+      adminSection.style.display = 'block';
+      await loadUsers();
+    }
   }
 
+  // Load hospital/SMS/reminder/AI settings from localStorage
+  loadSettingsFromStorage();
+  attachToggleListeners();
   setupEventListeners();
 });
 
+// ── Profile & Clinician Management ────────────────────────────────────────
 async function loadUsers() {
   try {
-    const data  = await listUsers();
+    const data = await listUsers();
     renderUsers(data.results || []);
   } catch (err) {
     console.error('Failed to load users:', err);
-    document.getElementById('usersTableBody').innerHTML =
+    const tbody = document.getElementById('usersTableBody');
+    if (tbody) tbody.innerHTML =
       '<tr><td colspan="6" class="table-empty-message" style="color:#dc3545">Failed to load users</td></tr>';
   }
 }
 
 function renderUsers(users) {
   const tbody = document.getElementById('usersTableBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   if (!users.length) {
@@ -265,9 +62,9 @@ function renderUsers(users) {
   }
 
   users.forEach(u => {
-    const row        = document.createElement('tr');
-    const isMe       = u.id === currentUser.id;
-    const lastLogin  = u.lastLoginAt
+    const row      = document.createElement('tr');
+    const isMe     = u.id === currentUser.id;
+    const lastLogin = u.lastLoginAt
       ? new Date(u.lastLoginAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })
       : 'Never';
 
@@ -277,14 +74,7 @@ function renderUsers(users) {
       <td>${u.role}</td>
       <td>${lastLogin}</td>
       <td><span class="adherence-badge ${u.isActive ? 'badge-green' : 'badge-red'}">${u.isActive ? 'Active' : 'Inactive'}</span></td>
-      <td>
-        ${!isMe ? `
-          <button class="action-icon" onclick="toggleUserStatus('${u.id}', ${u.isActive})"
-            title="${u.isActive ? 'Deactivate' : 'Activate'}">
-            ${u.isActive ? '🔒' : '🔓'}
-          </button>
-        ` : '—'}
-      </td>
+      <td>${!isMe ? `<button class="action-icon" onclick="toggleUserStatus('${u.id}', ${u.isActive})" title="${u.isActive ? 'Deactivate' : 'Activate'}">${u.isActive ? '🔒' : '🔓'}</button>` : '—'}</td>
     `;
     tbody.appendChild(row);
   });
@@ -305,24 +95,18 @@ function setupEventListeners() {
   const btnCancel = document.getElementById('btnCancelAdd');
   const btnCreate = document.getElementById('btnCreateClinician');
 
-  if (btnAdd) {
-    btnAdd.addEventListener('click', () => {
-      document.getElementById('addClinicianForm').style.display = 'block';
-      btnAdd.style.display = 'none';
-    });
-  }
+  if (btnAdd) btnAdd.addEventListener('click', () => {
+    document.getElementById('addClinicianForm').style.display = 'block';
+    btnAdd.style.display = 'none';
+  });
 
-  if (btnCancel) {
-    btnCancel.addEventListener('click', () => {
-      document.getElementById('addClinicianForm').style.display = 'none';
-      document.getElementById('btnAddClinician').style.display  = 'inline-block';
-      clearForm();
-    });
-  }
+  if (btnCancel) btnCancel.addEventListener('click', () => {
+    document.getElementById('addClinicianForm').style.display = 'none';
+    document.getElementById('btnAddClinician').style.display  = 'inline-block';
+    clearForm();
+  });
 
-  if (btnCreate) {
-    btnCreate.addEventListener('click', handleCreateClinician);
-  }
+  if (btnCreate) btnCreate.addEventListener('click', handleCreateClinician);
 }
 
 async function handleCreateClinician() {
@@ -333,16 +117,13 @@ async function handleCreateClinician() {
   const role      = document.getElementById('newRole').value;
 
   if (!firstName || !lastName || !email || !password) {
-    showToast('All fields are required', 'error');
-    return;
+    showToast('All fields are required', 'error'); return;
   }
-
   if (password.length < 8) {
-    showToast('Password must be at least 8 characters', 'error');
-    return;
+    showToast('Password must be at least 8 characters', 'error'); return;
   }
 
-  const btnCreate = document.getElementById('btnCreateClinician');
+  const btnCreate       = document.getElementById('btnCreateClinician');
   btnCreate.disabled    = true;
   btnCreate.textContent = 'Creating…';
 
@@ -363,16 +144,133 @@ async function handleCreateClinician() {
 
 function clearForm() {
   ['newFirstName','newLastName','newEmail','newPassword'].forEach(id => {
-    document.getElementById(id).value = '';
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
-  document.getElementById('newRole').value = 'CLINICIAN';
+  const roleEl = document.getElementById('newRole');
+  if (roleEl) roleEl.value = 'CLINICIAN';
 }
 
+// ── Hospital / SMS / Reminder / AI Settings (localStorage) ───────────────
+function loadSettingsFromStorage() {
+  const stored   = localStorage.getItem('carepulseSettings');
+  const settings = stored ? JSON.parse(stored) : defaultSettings;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  const chk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+
+  set('hospitalName',        settings.hospital.name);
+  set('hospitalAddress',     settings.hospital.address);
+  set('adminName',           settings.hospital.adminName);
+  set('contactEmail',        settings.hospital.contactEmail);
+  set('smsSenderId',         settings.sms.senderId);
+  set('defaultLanguage',     settings.sms.defaultLanguage);
+  set('appointmentLeadTime', settings.reminders.appointmentLeadTime);
+  set('messageStyle',        settings.gemini.messageStyle);
+  chk('medicationToggle',    settings.reminders.medicationReminders);
+  chk('appointmentToggle',   settings.reminders.appointmentReminders);
+  chk('healthTipToggle',     settings.reminders.healthTips);
+  chk('includePatientName',  settings.gemini.includePatientName);
+  chk('includeMedicationName', settings.gemini.includeMedicationName);
+}
+
+function getStoredSettings() {
+  const stored = localStorage.getItem('carepulseSettings');
+  return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultSettings));
+}
+
+function saveSettings(settings) {
+  localStorage.setItem('carepulseSettings', JSON.stringify(settings));
+}
+
+function saveHospitalSettings() {
+  const settings = getStoredSettings();
+  settings.hospital = {
+    name:         document.getElementById('hospitalName')?.value || '',
+    address:      document.getElementById('hospitalAddress')?.value || '',
+    adminName:    document.getElementById('adminName')?.value || '',
+    contactEmail: document.getElementById('contactEmail')?.value || '',
+  };
+  saveSettings(settings);
+  showToast('Hospital settings saved', 'success');
+}
+
+function saveSmsSettings() {
+  const senderId = document.getElementById('smsSenderId')?.value.trim() || '';
+  if (!senderId)       { showToast('SMS Sender ID is required', 'error'); return; }
+  if (senderId.length > 11) { showToast('Sender ID must be ≤11 characters', 'error'); return; }
+  const settings = getStoredSettings();
+  settings.sms = {
+    senderId,
+    defaultLanguage: document.getElementById('defaultLanguage')?.value || 'English',
+  };
+  saveSettings(settings);
+  showToast('SMS settings saved', 'success');
+}
+
+function saveReminderSettings() {
+  const settings = getStoredSettings();
+  settings.reminders = {
+    medicationReminders:  document.getElementById('medicationToggle')?.checked ?? true,
+    appointmentReminders: document.getElementById('appointmentToggle')?.checked ?? true,
+    healthTips:           document.getElementById('healthTipToggle')?.checked ?? true,
+    appointmentLeadTime:  document.getElementById('appointmentLeadTime')?.value || '3',
+  };
+  saveSettings(settings);
+  showToast('Reminder settings saved', 'success');
+}
+
+function saveGeminiSettings() {
+  const settings = getStoredSettings();
+  settings.gemini = {
+    messageStyle:          document.getElementById('messageStyle')?.value || 'Friendly',
+    includePatientName:    document.getElementById('includePatientName')?.checked ?? true,
+    includeMedicationName: document.getElementById('includeMedicationName')?.checked ?? true,
+  };
+  saveSettings(settings);
+  showToast('AI settings saved', 'success');
+}
+
+function attachToggleListeners() {
+  document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      this.parentElement.parentElement.classList.add('toggled');
+    });
+  });
+}
+
+function showResetConfirmation() {
+  const modal = document.getElementById('confirmationModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeModal() {
+  const modal = document.getElementById('confirmationModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function confirmReset() {
+  localStorage.removeItem('carepulseSettings');
+  closeModal();
+  showToast('Settings reset to defaults', 'success');
+  setTimeout(() => location.reload(), 1500);
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
 function showToast(message, type = 'success') {
-  const toast = document.getElementById('toast');
-  document.getElementById('toastMessage').textContent = message;
-  toast.style.backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 4000);
->>>>>>> 24f8a8f430a48320d4e982f5eb932fdb328e0fef
+  // Use existing toast div if present (our design)
+  const existing = document.getElementById('toast');
+  if (existing) {
+    document.getElementById('toastMessage').textContent = message;
+    existing.style.backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
+    existing.classList.add('show');
+    setTimeout(() => existing.classList.remove('show'), 4000);
+    return;
+  }
+  // Fallback inline toast (Imahe's design)
+  const toast      = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#008B8B'};color:white;padding:12px 20px;border-radius:4px;font-size:14px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15)`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }
